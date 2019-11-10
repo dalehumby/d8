@@ -17,7 +17,7 @@ register = {
         }
 
 instruction = {
-        'stop': 0b00000,
+        'stop': 0,
         'ldi': 1, 'ldd': 2, 'ldx': 3, 'std': 4, 'stx': 5,
         'mov':  6,
         'bra': 7, 'bcs': 8, 'bcc': 9, 'beq': 10, 'bne': 11, 'bsr': 12, 'rts': 13,
@@ -28,13 +28,14 @@ instruction = {
         }
 
 def tokenise(line):
-    # Split a line in to the component parts
+    """Split a line in to the component parts."""
     l = re.split('\t|,', line)  # split on tabs, comma and space
     l = [a.strip() for a in l]  # remove whitespace from each item
     return list(filter(None, l))  # remove empty strings from list
 
 
 def parse(tokens):
+    """Find the opcode and operands, remove comments."""
     opcode = tokens[0]
     if tokens[-1][0] == ';':
         tokens.pop(-1)
@@ -43,7 +44,7 @@ def parse(tokens):
 
 
 def machine(opcode, operands):
-    # Create the machine code from the opcode and operands
+    """Create the machine code from the opcode and operands."""
     if opcode in ['stop', 'rts', 'clc', 'sec', 'incx']:
         return _op(opcode)
     elif opcode in ['ldi', 'ldd', 'std']:
@@ -63,7 +64,6 @@ def machine(opcode, operands):
         return _op_reg_reg_reg('xor', 'a', operands[0], operands[1], compare=True)
     else:
         return 65535
-
 
 def _op(opcode):
     return instruction[opcode] << 11
@@ -92,11 +92,12 @@ def _op_abs11(opcode, abs):
         raise Exception('Absolute value must be less than 2048')
     return instruction[opcode] << 11 | abs
 
+
 def machine2string(m):
-    # Turn the machine code in to a printable string
-    s = bin(m)[2:]  # String 0b off the string
+    """Turn the machine code in to a printable string."""
+    s = bin(m)[2:]  # strip 0b off the string
     s = s.rjust(16, '0')  # make the bin representation 16 bits
-    return s[0:5] + ' ' + s[5:8] + ' ' + s[8:12] + ' ' + s[12:16]
+    return s[0:5] + ' ' + s[5:8] + ' ' + s[8:12] + ' ' + s[12:16]  # chunk so easy to read
 
 
 if __name__ == "__main__":
@@ -114,6 +115,7 @@ if __name__ == "__main__":
                 # todo
                 pass
             else:
+                # Assume to be assembly code
                 tokens = tokenise(line)
                 opcode, operands = parse(tokens)
                 m = machine(opcode, operands)
