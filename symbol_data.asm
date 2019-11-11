@@ -1,4 +1,5 @@
-; File with no defines, values, etc., just raw addresses
+; Symbol resolution (recursive) for data and defines
+; No forward resolution yet. All symbols muse be defined before they're used
 
 .define 	LENGTH 	2
 .define 	VAL 	0b00001010

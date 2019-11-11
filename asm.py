@@ -123,8 +123,8 @@ if __name__ == "__main__":
                 # Comments can be skipped
                 pass
             elif line[0] == '.':
-                define = re.search(r"\.define\s+(\w+)\s+(\w+)", line)
-                data = re.search(r"\.data\s+(\w+)\s+(\w+)(?:$|\s+\{(.*)\})", line)
+                define = re.search(r"\.define\s+(\w+)\s+(\w+)(?:$|\s*\;.*)?", line)
+                data = re.search(r"\.data\s+(\w+)\s+(\w+)(?:\s*\{(.*)\})?(?:\s*\;.*)?", line)
                 if define:
                     groups = define.groups()
                     symbol[groups[0]] = groups[1]
