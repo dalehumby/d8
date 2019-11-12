@@ -30,8 +30,8 @@ Start:
 	
 	; fibonacci[0] = i++
 	LDD		B, i
-	INC		B
-	STD		B, i
+	INC		C, B
+	STD		C, i
 	BNE		Start
 	
 	LDD		X, &fibonacci		; Load the first bytes' address in to X
@@ -42,11 +42,11 @@ Start:
 ; 16-bit counter
 Add_Sub:
 	LDD		A, temp+1	; increment the low byte
-	INC		A
-	STD		A, temp+1
+	INC		B, A
+	STD		B, temp+1
 	BCC		Return		; If did not cause an overflow then return
 	LDD		A, temp		; if overflow then inc high byte
-	INC		A
-	STD		A, temp
+	INC		B, A
+	STD		B, temp
 Return:
 	RTS
