@@ -115,25 +115,27 @@ if __name__ == "__main__":
 
     with open(args.filename, 'r') as f:
         for line in f.readlines():
-            line = line.lstrip().rstrip().lower()
+            line = line.split(';')[0]  # remove comments
+            line = line.strip().lower()  # remove leading and trailing whitespace, and lowercase
             if not line:
-                # Empty line
+                # Empty line skipped
                 pass
             elif line[0] == ';':
                 # Comments can be skipped
                 pass
             elif line[0] == '.':
-                define = re.search(r"\.define\s+(\w+)\s+(\w+)(?:$|\s*\;.*)?", line)
-                data = re.search(r"\.data\s+(\w+)\s+(\w+)(?:\s*\{(.*)\})?(?:\s*\;.*)?", line)
+                # Handle . command
+                define = re.search(r"\.define\s+(\w+)\s+(\w+)", line)
+                data = re.search(r"\.data\s+(\w+)\s+(\w+)(?:\s*\{(.*)\})?", line)
                 if define:
                     groups = define.groups()
                     symbol[groups[0]] = groups[1]
                 elif data:
                     groups = data.groups()
-                    symbl = groups[0]
-                    symbol[symbl] = address
+                    smbl = groups[0]
+                    symbol[smbl] = address
                     byte_count = resolve_symbol(groups[1])
-                    print(f'{format(address, "04x")} : {symbl}[{byte_count}]')
+                    print(f'{format(address, "04x")} : {smbl}[{byte_count}]')
                     address += byte_count
                     values = groups[2]
                     if values:
