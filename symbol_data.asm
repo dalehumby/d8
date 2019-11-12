@@ -15,6 +15,7 @@ Start:  					; start of main program
 	STD		C, temp		   	; Store C to address 0x00A0
 	CMP		A, B
 	BEQ		0x0000
+	BCC		loop			; forward branch
 	LDD		A, fib
 	LDI		B, VAL
 	ADD		C, A, B
@@ -24,6 +25,6 @@ loop:
 	ADC		D, B, C
 	MOV		C, D
 	BRA		Start			; loop back to start
-	BRA		loop
+	BRA		loop			; backwards branch
 
 	STOP					; Halt

@@ -112,6 +112,7 @@ def machine2string(m):
 if __name__ == "__main__":
     symbols = {}
     address = 0
+    memory = {}
 
     with open(args.filename, 'r') as f:
         for line in f.readlines():
@@ -136,6 +137,7 @@ if __name__ == "__main__":
                     if smbl in symbols:
                         raise Exception(f'Symbol "{smbl}" already defined')
                     symbols[smbl] = address
+                    memory[address] = {'type': 'symbol', 'symbol': smbl}
                     byte_count = resolve_symbol(groups[1])
                     print(f'{format(address, "04x")} : {smbl}[{byte_count}]')
                     address += byte_count
@@ -153,13 +155,20 @@ if __name__ == "__main__":
                 if smbl in symbols:
                     raise Exception(f'Symbol "{smbl}" already defined')
                 symbols[smbl] = address
+                memory[address] = {'type': 'symbol', 'symbol': smbl}
                 print(f'{format(address, "04x")} : {smbl}')
             else:
                 # Assume to be assembly code
                 tokens = tokenise(line)
                 opcode, operands = parse(tokens)
-                m = machine(opcode, operands)
-                print(f'{format(address, "04x")} : {machine2string(m)}\t| {opcode} {operands}')
+                memory[address] = {'type': 'instruction', 'op':opcode, 'opr': operands}
                 address += 2
 
     print(symbols)
+
+    for address, line in memory.items():
+        if line['type'] == 'instruction':
+            opcode = line['op']
+            operands = line['opr']
+            m = machine(opcode, operands)
+            print(f'{format(address, "04x")} : {machine2string(m)}\t| {opcode} {operands}')
