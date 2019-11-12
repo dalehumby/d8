@@ -142,7 +142,14 @@ if __name__ == "__main__":
                         v = values.split(',')
                         v = [int(y) for y in v]
                 else:
-                    raise Exception(f'Cannot parse line {line}')
+                    #raise Exception(f'Cannot parse line {line}')
+                    pass
+            elif line[-1] == ':':
+                # Handle location symbol
+                tokens = line.split()
+                smbl = tokens[0][:-1]
+                symbol[smbl] = address
+                print(f'{format(address, "04x")} : {smbl}')
             else:
                 # Assume to be assembly code
                 tokens = tokenise(line)

@@ -8,21 +8,22 @@
 .data 		fib 	0x03
 .data 		array 	5 {1,2,3, 4, 5}
 
-Start:  				; start of main program
-LDI		A, 0
-LDI		B, 5
-ADD		C, A, B 		; C = A + B
-STD		C, temp		   	; Store C to address 0x00A0
-CMP		A, B
-BEQ		0x0000
-LDD		A, fib
-LDI		B, VAL
-ADD		C, A, B
-INC		D, C
+Start:  					; start of main program
+	LDI		A, 0
+	LDI		B, 5
+	ADD		C, A, B 		; C = A + B
+	STD		C, temp		   	; Store C to address 0x00A0
+	CMP		A, B
+	BEQ		0x0000
+	LDD		A, fib
+	LDI		B, VAL
+	ADD		C, A, B
+	INC		D, C
 loop:
-LDD		B, array
-ADC		D, B, C
-MOV		C, D
-BRA		0x0000			; loop back to start
-BRA		0b1111
-STOP					; Halt
+	LDD		B, array
+	ADC		D, B, C
+	MOV		C, D
+	BRA		Start			; loop back to start
+	BRA		loop
+
+	STOP					; Halt
