@@ -86,7 +86,7 @@ def resolve_symbol(s):
         return int(str(s), 0)
     except ValueError:
         try:
-            return resolve_symbol(symbol[s])
+            return resolve_symbol(symbols[s])
         except KeyError:
             raise Exception(f"Undefined symbol '{s}'")
 
@@ -110,7 +110,7 @@ def machine2string(m):
 
 
 if __name__ == "__main__":
-    symbol = {}
+    symbols = {}
     address = 0
 
     with open(args.filename, 'r') as f:
@@ -129,11 +129,13 @@ if __name__ == "__main__":
                 data = re.search(r"\.data\s+(\w+)\s+(\w+)(?:\s*\{(.*)\})?", line)
                 if define:
                     groups = define.groups()
-                    symbol[groups[0]] = groups[1]
+                    symbols[groups[0]] = groups[1]
                 elif data:
                     groups = data.groups()
                     smbl = groups[0]
-                    symbol[smbl] = address
+                    if smbl in symbols:
+                        raise Exception(f'Symbol "{smbl}" already defined')
+                    symbols[smbl] = address
                     byte_count = resolve_symbol(groups[1])
                     print(f'{format(address, "04x")} : {smbl}[{byte_count}]')
                     address += byte_count
@@ -148,7 +150,9 @@ if __name__ == "__main__":
                 # Handle location symbol
                 tokens = line.split()
                 smbl = tokens[0][:-1]
-                symbol[smbl] = address
+                if smbl in symbols:
+                    raise Exception(f'Symbol "{smbl}" already defined')
+                symbols[smbl] = address
                 print(f'{format(address, "04x")} : {smbl}')
             else:
                 # Assume to be assembly code
@@ -158,4 +162,4 @@ if __name__ == "__main__":
                 print(f'{format(address, "04x")} : {machine2string(m)}\t| {opcode} {operands}')
                 address += 2
 
-    print(symbol)
+    print(symbols)
