@@ -97,7 +97,7 @@ def resolve_symbol(symbol):
         try:
             address += int(str(s), 0)
         except ValueError:
-            s = s.strip('&')  # Use the & symbol to refer to an address for readability, but not needed by assembler
+            s = s.strip('& ')  # Use the & symbol to refer to an address for readability, but not needed by assembler. Also strip spaces
             try:
                 address += resolve_symbol(symbols[s])
             except KeyError:
