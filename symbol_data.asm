@@ -1,5 +1,9 @@
 ; Symbol resolution (recursive) for data and defines
-; No forward resolution yet. All symbols muse be defined before they're used
+; Basic 2-pass assembler. 
+; Defines must be defined first, then data and then code. 
+; - Defines and Data use backward ref only.
+; - Code can have fwd and back refs
+; NOTE: This code doesnt do anything, just check my assembler
 
 .define 	LENGTH 	2 ; comment on the define
 .define 	VAL 	0b00001010
@@ -14,13 +18,14 @@ Start:  					; start of main program
 	ADD		C, A, B 		; C = A + B
 	STD		C, temp		   	; Store C to address 0x00A0
 	CMP		A, B
-	BEQ		0x0000
+	BEQ		0x0000			; Branch to address (not use symbol)
 	BCC		loop			; forward branch
 	LDD		A, fib
 	LDI		B, VAL
 	ADD		C, A, B
 	INC		D, C
 loop:
+loop2:
 	LDD		B, array
 	ADC		D, B, C
 	MOV		C, D

@@ -1,4 +1,12 @@
-# Assembler
+# D8 Assembler
+# Basic 2-pass assembler.
+#
+# Case insensitive
+# Defines and then data then code
+# Defines and Data only support back references
+# Code supports forward and back references
+#
+
 import argparse
 import re
 
@@ -81,14 +89,20 @@ def op_reg_reg_reg(opcode, Rd, Rs1, Rs2, compare=False):
     return m
 
 
-def resolve_symbol(s):
-    try:
-        return int(str(s), 0)
-    except ValueError:
+def resolve_symbol(symbol):
+    address = 0
+    if type(symbol) == int:
+        return symbol
+    for s in symbol.split('+'):
         try:
-            return resolve_symbol(symbols[s])
-        except KeyError:
-            raise Exception(f"Undefined symbol '{s}'")
+            address += int(str(s), 0)
+        except ValueError:
+            s = s.strip('&')  # Use the & symbol to refer to an address for readability, but not needed by assembler
+            try:
+                address += resolve_symbol(symbols[s])
+            except KeyError:
+                raise Exception(f"Undefined symbol '{s}'")
+    return address
 
 def op_reg_abs8(opcode, R, abs):
     abs = resolve_symbol(abs)
@@ -127,10 +141,15 @@ if __name__ == "__main__":
             elif line[0] == '.':
                 # Handle . command
                 define = re.search(r"\.define\s+(\w+)\s+(\w+)", line)
+                origin = re.search(r"\.origin\s+(\w+)", line)
                 data = re.search(r"\.data\s+(\w+)\s+(\w+)(?:\s*\{(.*)\})?", line)
                 if define:
                     groups = define.groups()
                     symbols[groups[0]] = groups[1]
+                elif origin:
+                    # Change the address to the origin
+                    origin = origin.groups()[0]
+                    address = resolve_symbol(origin)
                 elif data:
                     groups = data.groups()
                     smbl = groups[0]
@@ -161,7 +180,7 @@ if __name__ == "__main__":
                 # Assume to be assembly code
                 tokens = tokenise(line)
                 opcode, operands = parse(tokens)
-                memory[address] = {'type': 'instruction', 'op':opcode, 'opr': operands}
+                memory[address] = {'type': 'instruction', 'op': opcode, 'opr': operands}
                 address += 2
 
     print(symbols)
@@ -172,3 +191,8 @@ if __name__ == "__main__":
             operands = line['opr']
             m = machine(opcode, operands)
             print(f'{format(address, "04x")} : {machine2string(m)}\t| {opcode} {operands}')
+        else:
+            print(f'{format(address, "04x")} : {line["symbol"]}')
+
+        # todo: print branch symbols in amongst the code
+        # todo: nice to have: print how assembler resolved the symbol

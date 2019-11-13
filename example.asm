@@ -17,6 +17,7 @@
 
 .define Ram			 	0x0002		; Working memory between 02 and FF
 .define Main	 		0x0100		; Where the main code starts
+.define LENGTH			5
 .reset  Start						; Define where code starts executing after rest
 
 .origin Ram
@@ -34,7 +35,7 @@ Start:
 	STD		C, i
 	BNE		Start
 	
-	LDD		X, &fibonacci		; Load the first bytes' address in to X
+	LDI		X, &fibonacci		; Load the first bytes' address in to X
 	STX		B 					; Store the value of B at address X: [X] <- B
 	BRA		Start
 
@@ -49,4 +50,5 @@ Add_Sub:
 	INC		B, A
 	STD		B, temp
 Return:
+	LDD		C, temp+LENGTH
 	RTS
