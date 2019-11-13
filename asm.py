@@ -141,11 +141,18 @@ if __name__ == "__main__":
             elif line[0] == '.':
                 # Handle . command
                 define = re.search(r"\.define\s+(\w+)\s+(\w+)", line)
+                reset = re.search(r"\.reset\s+(\w+)", line)
                 origin = re.search(r"\.origin\s+(\w+)", line)
                 data = re.search(r"\.data\s+(\w+)\s+(\w+)(?:\s*\{(.*)\})?", line)
                 if define:
                     groups = define.groups()
                     symbols[groups[0]] = groups[1]
+                elif reset:
+                    # Create the reset command in first 2 bytes of RAM
+                    reset_address = reset.groups()[0]
+                    address = 0
+                    memory[address] = {'type': 'instruction', 'op': 'bra', 'opr': [reset_address]}
+                    address += 2
                 elif origin:
                     # Change the address to the origin
                     origin = origin.groups()[0]
