@@ -172,12 +172,10 @@ if __name__ == "__main__":
                         v = values.split(',')
                         v = [int(y) for y in v]
                 else:
-                    #raise Exception(f'Cannot parse line {line}')
-                    pass
+                    raise Exception(f'Cannot parse line {line}')
             elif line[-1] == ':':
                 # Handle location symbol
-                tokens = line.split()
-                smbl = tokens[0][:-1]
+                smbl = line[:-1]
                 if smbl in symbols:
                     raise Exception(f'Symbol "{smbl}" already defined')
                 symbols[smbl] = address

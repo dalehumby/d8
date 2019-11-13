@@ -10,10 +10,9 @@
 ; Opcode in col 9, operands in col 17, comments col 41 (or at least aligned in that block of code.)
 ;*******************************************************************************************
 
-.include "derivatives.inc"
-
-.segment	Ram			0x0002 TO 0x00FF
-.segment	Main		0x0100 TO 0xFFFF
+;.include "derivatives.inc" ; Not yet supported
+;.segment	Ram			0x0002 TO 0x00FF
+;.segment	Main		0x0100 TO 0xFFFF
 
 .define Ram			 	0x0002		; Working memory between 02 and FF
 .define Main	 		0x0100		; Where the main code starts
