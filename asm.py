@@ -127,9 +127,16 @@ if __name__ == "__main__":
     symbols = {}
     address = 0
     memory = {}
+    filename = args.filename
+    outlines = []
 
-    with open(args.filename, 'r') as f:
-        for line in f.readlines():
+    with open(filename, 'r') as f:
+        out = f'; Assembled {filename}'
+        outlines.append(out)
+        print(out)
+
+        lines = f.readlines()
+        for line_number, line in enumerate(lines, start=1):
             line = line.split(';')[0]  # remove comments
             line = line.strip().lower()  # remove leading and trailing whitespace, and lowercase
             if not line:
@@ -151,7 +158,7 @@ if __name__ == "__main__":
                     # Create the reset command in first 2 bytes of RAM
                     reset_address = reset.groups()[0]
                     address = 0
-                    memory[address] = {'type': 'instruction', 'op': 'bra', 'opr': [reset_address]}
+                    memory[address] = {'type': 'instruction', 'op': 'bra', 'opr': [reset_address], 'line_number': line_number}
                     address += 2
                 elif origin:
                     # Change the address to the origin
@@ -163,9 +170,11 @@ if __name__ == "__main__":
                     if smbl in symbols:
                         raise Exception(f'Symbol "{smbl}" already defined')
                     symbols[smbl] = address
-                    memory[address] = {'type': 'symbol', 'symbol': smbl}
+                    memory[address] = {'type': 'symbol', 'symbol': smbl, 'line_number': line_number}
                     byte_count = resolve_symbol(groups[1])
-                    print(f'{format(address, "04x")} : {smbl}[{byte_count}]')
+                    out = f'{format(address, "04x")} | {smbl}[{byte_count}]\t\t\t| {line_number}'
+                    outlines.append(out)
+                    print(out)
                     address += byte_count
                     values = groups[2]
                     if values:
@@ -179,25 +188,37 @@ if __name__ == "__main__":
                 if smbl in symbols:
                     raise Exception(f'Symbol "{smbl}" already defined')
                 symbols[smbl] = address
-                memory[address] = {'type': 'symbol', 'symbol': smbl}
-                print(f'{format(address, "04x")} : {smbl}')
+                memory[address] = {'type': 'symbol', 'symbol': smbl, 'line_number': line_number}
+                out = f'{format(address, "04x")} | {smbl}\t\t\t| {line_number}'
+                outlines.append(out)
+                print(out)
             else:
                 # Assume to be assembly code
                 tokens = tokenise(line)
                 opcode, operands = parse(tokens)
-                memory[address] = {'type': 'instruction', 'op': opcode, 'opr': operands}
+                memory[address] = {'type': 'instruction', 'op': opcode, 'opr': operands, 'line_number': line_number}
                 address += 2
 
-    print(symbols)
+    out = f'; Symbol table = {symbols}'
+    outlines.append(out)
+    print(out)
 
     for address, line in memory.items():
         if line['type'] == 'instruction':
             opcode = line['op']
             operands = line['opr']
+            line_number = line['line_number']
             m = machine(opcode, operands)
-            print(f'{format(address, "04x")} : {machine2string(m)}\t| {opcode} {operands}')
+            out = f'{format(address, "04x")} | {machine2string(m)}\t| {line_number} | {opcode} {operands}'
+            outlines.append(out)
+            print(out)
         else:
-            print(f'{format(address, "04x")} : {line["symbol"]}')
+            out = f'{format(address, "04x")} | {line["symbol"]}'
+            outlines.append(out)
+            print(out)
 
-        # todo: print branch symbols in amongst the code
         # todo: nice to have: print how assembler resolved the symbol
+
+    outfile = filename.rsplit('.')[0] + '.d8'
+    with open(outfile, 'w') as f:
+        f.writelines(map(lambda s: s + '\n', outlines))
