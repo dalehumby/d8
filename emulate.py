@@ -17,12 +17,6 @@ register = {
         'spch': 7
         }
 
-status_map = {
-        'zero': 0,
-        'carry': 1,
-        'stop': 7
-        }
-
 instruction = {
         'stop': 0,
         'ldi': 1, 'ldd': 2, 'ldx': 3, 'std': 4, 'stx': 5,
@@ -35,7 +29,6 @@ instruction = {
         }
 
 register_map = { value: key.upper() for key, value in register.items() }
-#status_map = {value: key for key, value in status.items() }
 instruction_map = {value: key for key, value in instruction.items() }
 
 
@@ -85,11 +78,6 @@ def load_file(filename):
     return memory, line_map
 
 
-def stop():
-    # Determine if the stop bit is set
-    return status & (1 << status_map['stop']) != 0
-
-
 def fetch():
     """
     Fetch an instruction from memory, load it in to the instruction register (ir)
@@ -113,11 +101,11 @@ def execute(opc, opr):
     global pc, status, registers
     print(f'Execute: {opc}\t {format(opr, "011b")}({opr})')
 
-    if opc== 'stop':
-        status |= 1 << status_map['stop']
-    elif op == 'ldi':
+    if opc == 'stop':
+        status['stop'] = True
+    elif opc == 'ldi':
        pass
-    elif op == 'bra':
+    elif opc == 'bra':
         pc = opr
 
 
@@ -134,11 +122,15 @@ if __name__ == "__main__":
 
     # On CPU reset, initialise the system
     pc = 0
-    status = 0
+    status = {
+        'zero': False,
+        'carry': False,
+        'stop': False
+        }
     registers = [0] * 8
     ir = 0
 
-    while not stop():
+    while not status['stop']:
         fetch()
         opcode, operands = decode()
         execute(opcode, operands)
