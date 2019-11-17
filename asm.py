@@ -204,16 +204,16 @@ if __name__ == "__main__":
     print(out)
 
     for address, line in memory.items():
+        line_number = line['line_number']
         if line['type'] == 'instruction':
             opcode = line['op']
             operands = line['opr']
-            line_number = line['line_number']
             m = machine(opcode, operands)
             out = f'{format(address, "04x")} | {machine2string(m)}\t| {line_number} | {opcode} {operands}'
             outlines.append(out)
             print(out)
         else:
-            out = f'{format(address, "04x")} | {line["symbol"]}'
+            out = f'{format(address, "04x")} | {line["symbol"]}\t\t\t| {line_number}'
             outlines.append(out)
             print(out)
 
