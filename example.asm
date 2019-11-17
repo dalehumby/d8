@@ -26,13 +26,16 @@
 
 .origin Main
 Start:
+	LDI		A, 0xFE
+	STD		A, temp+1
+Start2:
 	BSR		Add_Sub
 	
 	; fibonacci[0] = i++
 	LDD		B, i
 	INC		C, B
 	STD		C, i
-	BNE		Start
+	BNE		Start2
 	
 	LDI		X, &fibonacci		; Load the first bytes' address in to X
 	STX		B 					; Store the value of B at address X: [X] <- B

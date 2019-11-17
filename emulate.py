@@ -157,7 +157,7 @@ def get_abs11(operands):
 def execute(opc, opr):
     """Ececute the current opcode."""
     global pc, status, registers
-    print(f'Execute: {opc}\t {format(opr, "011b")}({opr})')
+    print(f'Execute: {opc}\t 0b{format(opr, "011b")}({opr})')
 
     if opc == 'stop':
         status['stop'] = True
@@ -293,6 +293,6 @@ if __name__ == "__main__":
         execute(opcode, operands)
         # Store is part of the execute function
         print(f'Stauts: {status}')
-        print(f'Registers: {registers}')
+        print(f'Registers: {registers}\tPC: 0x{format(pc, "04x")}')
         display_variables(variables)
         input()
