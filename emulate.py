@@ -207,9 +207,14 @@ def execute(opc, opr):
         if not status['carry']:
             pc = get_abs11(opr)
     elif opc == 'bsr':
-        pass
+        # Save the program counter in the shaddow program counter (SPC) registers
+        # Each register is only 8 bits, so split the 16-bit PC in to a high and low byte
+        registers[map_reg_num['SPCH']] = pc >> 8
+        registers[map_reg_num['SPCL']] = pc & 0xFF
+        pc = get_abs11(opr)
     elif opc == 'rts':
-        pass
+        # To return from subroutine, copy the shaddow program counter in to the program counter
+        pc = registers[map_reg_num['SPCH']] << 8 | registers[map_reg_num['SPCL']]
     elif opc in ['add', 'adc', 'inc', 'and', 'or', 'not', 'xor', 'lsl', 'lsr', 'dec']:
         alu(opc, opr)
     elif opc in ['clc', 'sec']:

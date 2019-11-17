@@ -51,3 +51,5 @@ Add_Sub:
 Return:
 	LDD		C, temp+LENGTH
 	RTS
+
+	STOP				; Incase we ever get here
