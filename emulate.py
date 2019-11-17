@@ -36,11 +36,11 @@ instruction_map = {value: key for key, value in instruction.items() }
 def parseline(line):
     """
     Given a line in d8 format, return a dictionary with the key as the address
-    and the value as a tuple of memory contents and line number
+    and the value as a tuple of (memory contents, line number, variable)
     """
     if line.startswith(';'):
         # Skip comment lines
-        return None, None
+        return None, None, None
     else:
         line = line.split('|')
         address = int(line[0].strip(), 16)
@@ -49,18 +49,19 @@ def parseline(line):
         if '[' in value:
             # Handle variables
             memory = {}
-            result = re.search(r'\w+\[(\d+)\]', value)
-            length = int(result.groups()[0], 10)
+            result = re.search(r'(\w+)\[(\d+)\]', value)
+            name = result.groups()[0]
+            length = int(result.groups()[1], 10)
             for adr in range(address, address+length):
                 memory[adr] = 0
-            return memory, None
+            return memory, None, {name: {'length': length, 'address': address}}
         elif value[0] in ['0', '1']:
             value = value.replace(' ', '')  # remove whitespace
             high_byte = int(value[0:8], 2)
             low_byte = int(value[8:], 2)
-            return {address: high_byte, address+1: low_byte}, {address: line_number}
+            return {address: high_byte, address+1: low_byte}, {address: line_number}, None
         else:
-            return None, None
+            return None, None, None
 
 
 def load_file(filename):
@@ -69,14 +70,17 @@ def load_file(filename):
     """
     memory = {}
     line_map = {}
+    variables = {}
     with open(filename, 'r') as f:
         for line in f.readlines():
-            mem, line_number = parseline(line)
+            mem, line_number, variable = parseline(line)
             if mem:
                 memory.update(mem)
             if line_number:
                 line_map.update(line_number)
-    return memory, line_map
+            if variable:
+                variables.update(variable)
+    return memory, line_map, variables
 
 
 def load_source(filename):
@@ -95,6 +99,13 @@ def display_source(pc, line_map, source):
     line_number = line_map[pc]
     source_line = source[line_number-1]
     print(f'{line_number} : {source_line}')
+
+
+def display_variables(variables):
+    """Display all the variables and their content."""
+    for name, v in variables.items():
+        content = [ memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
+        print(f'{name}[{v["length"]}]: {content}')
 
 
 def fetch():
@@ -253,11 +264,9 @@ def alu(opcode, operands):
         registers[Rd] = data
 
 
-
-
 if __name__ == "__main__":
     # First load the d8 file in to memory
-    memory, line_map = load_file(args.filename)
+    memory, line_map, variables = load_file(args.filename)
     source = load_source(args.filename)
     #print('Memory: ', memory)
     #print('Line numbers: ' , line_map)
@@ -280,4 +289,5 @@ if __name__ == "__main__":
         # Store is part of the execute function
         print(f'Stauts: {status}')
         print(f'Registers: {registers}')
+        display_variables(variables)
         input()
