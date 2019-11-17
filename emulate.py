@@ -78,6 +78,24 @@ def load_file(filename):
     return memory, line_map
 
 
+def load_source(filename):
+    """
+    Load the original source .asm file
+    Returns a list of lines that you can index in to
+    """
+    filename = filename.split('.')[0] + '.asm'
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+    lines = [ line.strip() for line in lines ]
+    return lines
+
+
+def display_source(pc, line_map, source):
+    line_number = line_map[pc]
+    source_line = source[line_number-1]
+    print(f'{line_number} : {source_line}')
+
+
 def fetch():
     """
     Fetch an instruction from memory, load it in to the instruction register (ir)
@@ -115,8 +133,9 @@ def store():
 
 
 if __name__ == "__main__":
-    # First load the file in to memory
+    # First load the d8 file in to memory
     memory, line_map = load_file(args.filename)
+    source = load_source(args.filename)
     #print('Memory: ', memory)
     #print('Line numbers: ' , line_map)
 
@@ -131,6 +150,7 @@ if __name__ == "__main__":
     ir = 0
 
     while not status['stop']:
+        display_source(pc, line_map, source)
         fetch()
         opcode, operands = decode()
         execute(opcode, operands)
