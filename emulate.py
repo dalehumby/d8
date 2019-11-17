@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('filename')
 args = parser.parse_args()
 
-register = {
+map_reg_num = {
         'a': 0,
         'b': 1,
         'c': 2,
@@ -16,6 +16,8 @@ register = {
         'spcl': 6,
         'spch': 7
         }
+map_reg_num = { key.upper(): value for key, value in map_reg_num.items() }  # uppercase the keys
+map_num_reg = { value: key.upper() for key, value in map_reg_num.items() }  # invert the dictionary
 
 instruction = {
         'stop': 0,
@@ -28,7 +30,6 @@ instruction = {
         'incx': 28
         }
 
-register_map = { value: key.upper() for key, value in register.items() }
 instruction_map = {value: key for key, value in instruction.items() }
 
 
@@ -114,21 +115,143 @@ def decode():
     opcode = instruction_map[opcode]
     return opcode, operands
 
+def get_reg(operands):
+    R = operands >> 8
+    return R
+
+def get_reg_reg(operands):
+    Rd = operands >> 8
+    Rs = (operands & 0b01110000) >> 4
+    return Rd, Rs
+
+def get_reg_reg_reg(operands):
+    Rd = operands >> 8
+    Rs1 = (operands & 0b01110000) >> 4
+    Rs2 = operands & 0b00000111
+    if Rd in [Rs1, Rs2]:
+        # Limitation of the CPU is you cannot save data in to the same register
+        # as the one you are reading from
+        raise Exception('Source register cannot also be destination register')
+    return Rd, Rs1, Rs2
+
+def get_reg_abs8(operands):
+    Rd = operands >> 8
+    abs8 = operands & 0xFF
+    return Rd, abs8
+
+def get_abs11(operands):
+    abs11 = operands
+    return abs11
 
 def execute(opc, opr):
+    """Ececute the current opcode."""
     global pc, status, registers
     print(f'Execute: {opc}\t {format(opr, "011b")}({opr})')
 
     if opc == 'stop':
         status['stop'] = True
     elif opc == 'ldi':
-       pass
+       Rd, data = get_reg_abs8(opr)
+       registers[Rd] = data
+       print(f'{map_num_reg[Rd]}<-{data}')
+    elif opc == 'ldd':
+       Rd, address = get_reg_abs8(opr)
+       data = memory[address]
+       registers[Rd] = data
+       print(f'{map_num_reg[Rd]}<-{data}<-memory[{address}]')
+    elif opc == 'ldx':
+        Rd = get_reg(opr)
+        address = registers[map_reg_num['X']]
+        data = memory[address]
+        registers[Rd] = data
+        print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
+    elif opc == 'std':
+        Rs, address = get_reg_abs8(opr)
+        data = registers[Rs]
+        memory[address] = data
+        print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
+    elif opc == 'stx':
+        Rs = get_reg(opr)
+        data = registers[Rs]
+        address = registers[map_reg_num['X']]
+        memory[address] = data
+        print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
+    elif opc == 'mov':
+        Rd, Rs = get_reg_reg(opr)
+        data = registers[Rs]
+        registers[Rd] = data
+        print(f'{map_num_reg[Rd]}<-{data}<-{map_num_reg[Rs]}')
     elif opc == 'bra':
-        pc = opr
+        pc = get_abs11(opr)
+    elif opc == 'beq':
+        if status['zero']:
+            pc = get_abs11(opr)
+    elif opc == 'bne':
+        if not status['zero']:
+            pc = get_abs11(opr)
+    elif opc == 'bcs':
+        if status['carry']:
+            pc = get_abs11(opr)
+    elif opc == 'bcc':
+        if not status['carry']:
+            pc = get_abs11(opr)
+    elif opc == 'bsr':
+        pass
+    elif opc == 'rts':
+        pass
+    elif opc in ['add', 'adc', 'inc', 'and', 'or', 'not', 'xor', 'lsl', 'lsr', 'dec']:
+        alu(opc, opr)
+    elif opc in ['clc', 'sec']:
+        status['carry'] = (opc == 'sec')
+    elif opc == 'incx':
+        registers[map_reg_num['X']] += 1
+    else:
+        print(status)
+        print(registers)
+        raise Exception(f'Unrecognised opcode {opc}')
 
 
-def store():
-    pass
+def alu(opcode, operands):
+    """Emulate the ALU execution cycles."""
+    global registers
+
+    def _full_add(Rs1, Rs2, carry):
+        """Implement the full adder."""
+        Rd = Rs1 + Rs2 + carry
+        carry = Rd > 0xFF
+        Rd &= 0xFF  # Ensure result in range 0 to 0xFF
+        return Rd, carry
+
+    Rd, Rs1, Rs2 = get_reg_reg_reg(operands)
+
+    if opcode == 'add':
+        data, status['carry'] = _full_add(registers[Rs1], registers[Rs2], 0)
+    elif opcode == 'adc':
+        data, status['carry'] = _full_add(registers[Rs1], registers[Rs2], status['carry'])
+    elif opcode == 'inc':
+        data, status['carry'] = _full_add(registers[Rs1], 0, 1)
+    elif opcode == 'dec':
+        data, status['carry'] = _full_add(registers[Rs1], 0xFF, 0)
+    elif opcode == 'and':
+        data = registers[Rs1] & registers[Rs2]
+    elif opcode == 'or':
+        data = registers[Rs1] | registers[Rs2]
+    elif opcode == 'xor':
+        data = registers[Rs1] ^ registers[Rs2]
+    elif opcode == 'not':
+        data = ~registers[Rs1]
+    elif opcode == 'lsl':
+        pass
+    elif opcode == 'lsr':
+        pass
+
+    # Set the status bits
+    status['zero'] = data == 0
+
+    # If bit 7 is clear then save the result
+    if operands & 0b10000000 == 0:
+        registers[Rd] = data
+
 
 
 
@@ -154,5 +277,7 @@ if __name__ == "__main__":
         fetch()
         opcode, operands = decode()
         execute(opcode, operands)
-        store()
-
+        # Store is part of the execute function
+        print(f'Stauts: {status}')
+        print(f'Registers: {registers}')
+        input()
