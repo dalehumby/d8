@@ -35,6 +35,7 @@ Start2:
 	LDD		B, i
 	INC		C, B
 	STD		C, i
+	DEC		D, C
 	BNE		Start2
 	
 	LDI		X, &fibonacci		; Load the first bytes' address in to X
