@@ -129,7 +129,7 @@ def run_emulator(stdscr):
         # todo: update breakpoints from the command mode
         source_pad.attron(curses.color_pair(3))
         source_pad.addch(21, 0, '●', curses.A_BOLD)
-        source_pad.noutrefresh(top_row, 0, 1, 0, height-1, width-reg_win_width)
+        source_pad.noutrefresh(top_row, 0, 1, 0, height-2, width-reg_win_width)
 
         # Update screen
         draw_registers(reg_win)
