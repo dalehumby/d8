@@ -23,9 +23,12 @@ def handle_step(pad, source):
     # Update row highlighting to next row
     pad.attron(curses.color_pair(2))
     pad.addstr(handle_step.step_row, 1, f'{handle_step.step_row:2d} {handle_step.step_row:04X}  {source[handle_step.step_row]}')
-    handle_step.step_row += 1
-    pad.attron(curses.color_pair(1))
-    pad.addstr(handle_step.step_row, 1, f'{handle_step.step_row:2d} {handle_step.step_row:04X}  {source[handle_step.step_row]}')
+    # Only continue to step if there are more source rows. Note 0 to n-1 for n rows of source
+    # todo: rows should be 1-n
+    if handle_step.step_row < len(source) - 1:
+        handle_step.step_row += 1
+        pad.attron(curses.color_pair(1))
+        pad.addstr(handle_step.step_row, 1, f'{handle_step.step_row:2d} {handle_step.step_row:04X}  {source[handle_step.step_row]}')
 
 handle_step.step_row = 0
 
