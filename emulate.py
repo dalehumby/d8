@@ -1,11 +1,6 @@
-# D8 Emulator (non-GUI version)
+# D8 Emulator
 
 import re
-import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument('filename')
-args = parser.parse_args()
 
 map_reg_num = {
         'a': 0,
@@ -292,6 +287,12 @@ class Emulator:
 
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename')
+    args = parser.parse_args()
+
     d8 = Emulator(args.filename)
     source = d8.load_source(args.filename)
 
