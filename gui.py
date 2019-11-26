@@ -1,7 +1,5 @@
 import curses
-
-class Quit(Exception):
-    pass
+from emulate import Emulator
 
 def enter_command(screen):
     """Handle command mode."""
@@ -30,12 +28,12 @@ def handle_command(cmd):
     cmd is initially a byte array, so turn in to a string"""
     cmd = cmd.decode('utf-8')
     if cmd == 'q':
-        raise Quit
+        quit()
 
 
-def handle_step(pad, source):
+def handle_step(pad, cpu, source):
     """Handle a single step of the CPU."""
-    # todo: step CPU
+    cpu.step()
 
     # Update row highlighting to next row
     pad.attron(curses.color_pair(2))
@@ -49,19 +47,31 @@ def handle_step(pad, source):
 
 handle_step.step_row = 0
 
-def draw_registers(win):
+def draw_registers(win, cpu):
+    def ir2string(ir):
+        """
+        Turn the machine code IR in to a printable string.
+        Chunk so easy to read
+        """
+        s = format(ir, '016b')
+        return s[0:5] + ' ' + s[5:8] + ' ' + s[8:12] + ' ' + s[12:16]
+
+    def reg2string(reg):
+        """Format the registers in to something readable."""
+        return f'{format(reg, "3")} 0x{format(reg, "02x")} b{format(reg, "08b")}'
+
     win.attron(curses.color_pair(2))
-    win.addstr(0, 0, 'Registers')
-    win.addstr(1, 0, 'S:0  C:0  Z:1')
-    win.addstr(2, 0, 'A    255 0xFF b10101100')
-    win.addstr(3, 0, 'B    b10101100 0xFF 255')
-    win.addstr(4, 0, 'C    b10101100 0xFF 255')
-    win.addstr(5, 0, 'D    b10101100 0xFF 255')
-    win.addstr(6, 0, 'X    b10101100 0xFF 255')
-    win.addstr(7, 0, 'SPCH b10101100 0xFF 255')
-    win.addstr(8, 0, 'SPCL b10101100 0xFF 255')
-    win.addstr(9, 0, 'PC   0xFFFF')
-    win.addstr(10, 0, 'INST 11100 111 0111 0111')
+    win.addstr(0, 0,   'Registers')
+    win.addstr(1, 0,  f'S:{int(cpu.status["stop"])}  C:{int(cpu.status["carry"])}  Z:{int(cpu.status["zero"])}')
+    win.addstr(2, 0,  f'A    {reg2string(cpu.registers[0])}')
+    win.addstr(3, 0,  f'B    {reg2string(cpu.registers[1])}')
+    win.addstr(4, 0,  f'C    {reg2string(cpu.registers[2])}')
+    win.addstr(5, 0,  f'D    {reg2string(cpu.registers[3])}')
+    win.addstr(6, 0,  f'X    {reg2string(cpu.registers[5])}')
+    win.addstr(7, 0,  f'SPCH {reg2string(cpu.registers[6])}')
+    win.addstr(8, 0,  f'SPCL {reg2string(cpu.registers[7])}')
+    win.addstr(9, 0,  f'PC   0x{format(cpu.pc, "04x")}')
+    win.addstr(10, 0, f'INST {ir2string(cpu.ir)}')
     win.noutrefresh()
 
 def draw_variables(win):
@@ -81,7 +91,11 @@ def draw_memory(win):
     win.addstr(4, 0, '0018 00 11 22 33 44 55 66 77')
     win.noutrefresh()
 
-def run_emulator(stdscr):
+def run_emulator(stdscr, filename):
+    # Instantiate the emulator, and load the source file
+    cpu = Emulator(filename)
+    source = cpu.load_source(filename)
+
     # Clear and refresh the screen for a blank canvas
     stdscr.clear()
     stdscr.refresh()
@@ -128,48 +142,45 @@ def run_emulator(stdscr):
     stdscr.addstr(height-1, 0, " "*(width-1))
     stdscr.attroff(curses.color_pair(1))
 
-    try:
-        k = 0
-        while True:
-            # Code window
-            if k == ord(':'):
-                enter_command(stdscr)
-            elif k == curses.KEY_DOWN:
-                top_row += 1
-                top_row = min(len(source)-height+2, top_row)
-            elif k == curses.KEY_UP:
-                top_row -= 1
-                top_row = max(0, top_row)
-            elif k == ord('s'):
-                handle_step(source_pad, source)
+    k = 0
+    while True:
+        # Code window
+        if k == ord(':'):
+            enter_command(stdscr)
+        elif k == curses.KEY_DOWN:
+            top_row += 1
+            top_row = min(len(source)-height+2, top_row)
+        elif k == curses.KEY_UP:
+            top_row -= 1
+            top_row = max(0, top_row)
+        elif k == ord('s'):
+            handle_step(source_pad, cpu, source)
 
-            # Breakpoints
-            # todo: update breakpoints from the command mode
-            source_pad.attron(curses.color_pair(3))
-            source_pad.addch(21, 0, '●', curses.A_BOLD)
+        # Breakpoints
+        # todo: update breakpoints from the command mode
+        source_pad.attron(curses.color_pair(3))
+        source_pad.addch(21, 0, '●', curses.A_BOLD)
 
-            # Update the screen
-            source_pad.noutrefresh(top_row, 0, 1, 0, height-2, width-reg_win_width)
+        # Update the screen
+        source_pad.noutrefresh(top_row, 0, 1, 0, height-2, width-reg_win_width)
 
-            # Update screen
-            draw_registers(reg_win)
-            draw_variables(var_win)
-            draw_memory(mem_win)
+        # Update screen
+        draw_registers(reg_win, cpu)
+        draw_variables(var_win)
+        draw_memory(mem_win)
 
-            # Refresh the screen
-            curses.doupdate()
+        # Refresh the screen
+        curses.doupdate()
 
-            # Wait for next input
-            k = stdscr.getch()
-    except Quit:
-        print('Done')
+        # Wait for next input
+        k = stdscr.getch()
 
 
 if __name__ == "__main__":
-    # load file
-    filename = 'fib.asm'
-    with open(filename, 'r') as f:
-        source = f.readlines()
-    source = [ line.rstrip() for line in source ]
+    import argparse
 
-    curses.wrapper(run_emulator)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename', help='.d8 file to load in to emulator')
+    args = parser.parse_args()
+
+    curses.wrapper(run_emulator, args.filename)

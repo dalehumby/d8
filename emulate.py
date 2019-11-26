@@ -290,7 +290,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('filename')
+    parser.add_argument('filename', help='.d8 file to load in to emulator')
     args = parser.parse_args()
 
     d8 = Emulator(args.filename)
