@@ -72,7 +72,7 @@ def run_emulator(stdscr):
     stdscr.refresh()
     height, width = stdscr.getmaxyx()
 
-    # Start colors in curses
+    # Set up colours
     curses.start_color()
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
@@ -132,6 +132,8 @@ def run_emulator(stdscr):
         # todo: update breakpoints from the command mode
         source_pad.attron(curses.color_pair(3))
         source_pad.addch(21, 0, '●', curses.A_BOLD)
+
+        # Update the screen
         source_pad.noutrefresh(top_row, 0, 1, 0, height-2, width-reg_win_width)
 
         # Update screen
@@ -148,7 +150,6 @@ def run_emulator(stdscr):
 
 if __name__ == "__main__":
     # load file
-
     filename = 'fib.asm'
     with open(filename, 'r') as f:
         source = f.readlines()
