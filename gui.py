@@ -1,7 +1,7 @@
 import curses
 from emulate import Emulator
 
-def enter_command(screen):
+def enter_command(screen, cpu):
     """Handle command mode."""
     # Create command bar
     height, width = screen.getmaxyx()
@@ -14,7 +14,7 @@ def enter_command(screen):
 
     # Capture command
     cmd = screen.getstr(height-1, 1, 20)
-    message = handle_command(cmd)
+    message = handle_command(cmd, cpu)
 
     # Clear command bar
     # todo: print error messages here
@@ -23,12 +23,14 @@ def enter_command(screen):
     screen.addstr(height-1, 0, " "*(width-1))
     screen.attroff(curses.color_pair(1))
 
-def handle_command(cmd):
+def handle_command(cmd, cpu):
     """Handle the command that is typed in.
     cmd is initially a byte array, so turn in to a string"""
     cmd = cmd.decode('utf-8')
     if cmd == 'q':
         quit()
+    if cmd == 'reset':
+        cpu.reset()
 
 
 def handle_step(pad, cpu, source):
@@ -74,12 +76,14 @@ def draw_registers(win, cpu):
     win.addstr(10, 0, f'INST {ir2string(cpu.ir)}')
     win.noutrefresh()
 
-def draw_variables(win):
+def draw_variables(win, cpu):
     win.attron(curses.color_pair(2))
     win.addstr(0, 0, 'Variables')
-    win.addstr(1, 0, 'temp[1]: [0]')
-    win.addstr(2, 0, 'fib[10]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]')
-    win.addstr(3, 0, 'return[2]: [0, 0]')
+    y = 1
+    for name, v in cpu.variables.items():
+        content = [ cpu.memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
+        win.addstr(y, 0, f'{name}[{v["length"]}]: {content}')
+        y += 1  # todo: can I do this in the iterator?
     win.noutrefresh()
 
 def draw_memory(win):
@@ -146,7 +150,7 @@ def run_emulator(stdscr, filename):
     while True:
         # Code window
         if k == ord(':'):
-            enter_command(stdscr)
+            enter_command(stdscr, cpu)
         elif k == curses.KEY_DOWN:
             top_row += 1
             top_row = min(len(source)-height+2, top_row)
@@ -166,7 +170,7 @@ def run_emulator(stdscr, filename):
 
         # Update screen
         draw_registers(reg_win, cpu)
-        draw_variables(var_win)
+        draw_variables(var_win, cpu)
         draw_memory(mem_win)
 
         # Refresh the screen
