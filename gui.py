@@ -1,6 +1,9 @@
 import curses
 
-def handle_command(screen):
+class Quit(Exception):
+    pass
+
+def enter_command(screen):
     """Handle command mode."""
     # Create command bar
     height, width = screen.getmaxyx()
@@ -10,11 +13,25 @@ def handle_command(screen):
     curses.curs_set(1)  # Switch cursor on
     curses.echo()
     screen.refresh()
-    input = screen.getstr(height-1, 1, 20)
+
+    # Capture command
+    cmd = screen.getstr(height-1, 1, 20)
+    message = handle_command(cmd)
+
+    # Clear command bar
+    # todo: print error messages here
     curses.noecho()
     curses.curs_set(0)
     screen.addstr(height-1, 0, " "*(width-1))
     screen.attroff(curses.color_pair(1))
+
+def handle_command(cmd):
+    """Handle the command that is typed in.
+    cmd is initially a byte array, so turn in to a string"""
+    cmd = cmd.decode('utf-8')
+    if cmd == 'q':
+        raise Quit
+
 
 def handle_step(pad, source):
     """Handle a single step of the CPU."""
@@ -65,8 +82,6 @@ def draw_memory(win):
     win.noutrefresh()
 
 def run_emulator(stdscr):
-    k = 0
-
     # Clear and refresh the screen for a blank canvas
     stdscr.clear()
     stdscr.refresh()
@@ -113,39 +128,41 @@ def run_emulator(stdscr):
     stdscr.addstr(height-1, 0, " "*(width-1))
     stdscr.attroff(curses.color_pair(1))
 
-    # Loop where k is the last character pressed
-    while (k != ord('q')):
+    try:
+        k = 0
+        while True:
+            # Code window
+            if k == ord(':'):
+                enter_command(stdscr)
+            elif k == curses.KEY_DOWN:
+                top_row += 1
+                top_row = min(len(source)-height+2, top_row)
+            elif k == curses.KEY_UP:
+                top_row -= 1
+                top_row = max(0, top_row)
+            elif k == ord('s'):
+                handle_step(source_pad, source)
 
-        # Code window
-        if k == ord(':'):
-            handle_command(stdscr)
-        elif k == curses.KEY_DOWN:
-            top_row += 1
-            top_row = min(len(source)-height+2, top_row)
-        elif k == curses.KEY_UP:
-            top_row -= 1
-            top_row = max(0, top_row)
-        elif k == ord('s'):
-            handle_step(source_pad, source)
+            # Breakpoints
+            # todo: update breakpoints from the command mode
+            source_pad.attron(curses.color_pair(3))
+            source_pad.addch(21, 0, '●', curses.A_BOLD)
 
-        # Breakpoints
-        # todo: update breakpoints from the command mode
-        source_pad.attron(curses.color_pair(3))
-        source_pad.addch(21, 0, '●', curses.A_BOLD)
+            # Update the screen
+            source_pad.noutrefresh(top_row, 0, 1, 0, height-2, width-reg_win_width)
 
-        # Update the screen
-        source_pad.noutrefresh(top_row, 0, 1, 0, height-2, width-reg_win_width)
+            # Update screen
+            draw_registers(reg_win)
+            draw_variables(var_win)
+            draw_memory(mem_win)
 
-        # Update screen
-        draw_registers(reg_win)
-        draw_variables(var_win)
-        draw_memory(mem_win)
+            # Refresh the screen
+            curses.doupdate()
 
-        # Refresh the screen
-        curses.doupdate()
-
-        # Wait for next input
-        k = stdscr.getch()
+            # Wait for next input
+            k = stdscr.getch()
+    except Quit:
+        print('Done')
 
 
 if __name__ == "__main__":
