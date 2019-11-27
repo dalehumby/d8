@@ -58,7 +58,7 @@ class Emulator:
     def display_variables(self):
         """Display all the variables and their content."""
         print(f'Stauts: {self.status}')
-        print(f'Registers: {self.registers}\tPC: 0x{format(self.pc, "04x")}')
+        print(f'Registers: {self.registers}\tPC: 0x{self.pc:04x}')
         for name, v in self.variables.items():
             content = [ self.memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
             print(f'{name}[{v["length"]}]: {content}')
@@ -87,7 +87,7 @@ class Emulator:
         filename = filename.split('.')[0] + '.asm'
         with open(filename, 'r') as f:
             lines = f.readlines()
-        lines = [ line.strip() for line in lines ]
+        lines = [ line.rstrip() for line in lines ]
         return lines
 
     def _parseline(self, line):
@@ -111,13 +111,15 @@ class Emulator:
                 length = int(result.groups()[1], 10)
                 for adr in range(address, address+length):
                     memory[adr] = 0
-                return memory, None, {name: {'length': length, 'address': address}}
+                return memory, {address: line_number}, {name: {'length': length, 'address': address}}
             elif value[0] in ['0', '1']:
+                # Handle machine instruction
                 value = value.replace(' ', '')  # remove whitespace
                 high_byte = int(value[0:8], 2)
                 low_byte = int(value[8:], 2)
                 return {address: high_byte, address+1: low_byte}, {address: line_number}, None
             else:
+                # Dont care
                 return None, None, None
 
     def _fetch(self):
@@ -175,7 +177,7 @@ class Emulator:
 
     def _execute(self, opc, opr):
         """Execute the current opcode."""
-        #print(f'Execute: {opc}\t 0b{format(opr, "011b")}({opr})')
+        #print(f'Execute: {opc}\t 0b{opr:011b}({opr})')
 
         if opc == 'stop':
             self.status['stop'] = True

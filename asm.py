@@ -1,11 +1,12 @@
-# D8 Assembler
-# Basic 2-pass assembler.
-#
-# Case insensitive
-# Defines and then data then code
-# Defines and Data only support back references
-# Code supports forward and back references
-#
+"""
+D8 Assembler
+Basic 2-pass assembler.
+
+Case insensitive
+Defines and then data then code
+Defines and Data only support back references
+Code supports forward and back references
+"""
 
 import argparse
 import re

@@ -1,7 +1,7 @@
 import curses
 from emulate import Emulator
 
-def enter_command(screen, cpu):
+def enter_command(screen, cpu, source_pad):
     """Handle command mode."""
     # Create command bar
     height, width = screen.getmaxyx()
@@ -14,7 +14,7 @@ def enter_command(screen, cpu):
 
     # Capture command
     cmd = screen.getstr(height-1, 1, 20)
-    message = handle_command(cmd, cpu)
+    message = handle_command(cmd, cpu, source_pad)
 
     # Clear command bar
     # todo: print error messages here
@@ -23,31 +23,44 @@ def enter_command(screen, cpu):
     screen.addstr(height-1, 0, " "*(width-1))
     screen.attroff(curses.color_pair(1))
 
-def handle_command(cmd, cpu):
+def handle_command(cmd, cpu, source_pad):
     """Handle the command that is typed in.
     cmd is initially a byte array, so turn in to a string"""
-    cmd = cmd.decode('utf-8')
+    cmd = cmd.decode('utf-8').split()
+    operands = cmd[1:]
+    cmd = cmd[0]
     if cmd == 'q':
         quit()
-    if cmd == 'reset':
+    elif cmd == 'reset':
         cpu.reset()
+    elif cmd == 'bd':
+        # Delete a breakpoint
+        y = int(operands[0]) - 1
+        source_pad.attron(curses.color_pair(3))
+        source_pad.addch(y, 0, ' ', curses.A_BOLD)
+    elif cmd == 'ba':
+        # Add a breakpoint
+        y = int(operands[0]) - 1
+        source_pad.attron(curses.color_pair(3))
+        source_pad.addch(y, 0, '●', curses.A_BOLD)
 
-
-def handle_step(pad, cpu, source):
+def handle_step(pad, cpu, source_map):
     """Handle a single step of the CPU."""
-    cpu.step()
+    try:
+        # 'unhighlight' old row
+        pad.attron(curses.color_pair(2))
+        y, text = source_map[cpu.pc]
+        pad.addstr(y, 1, text)
 
-    # Update row highlighting to next row
-    pad.attron(curses.color_pair(2))
-    pad.addstr(handle_step.step_row, 1, f'{handle_step.step_row:2d} {handle_step.step_row:04X}  {source[handle_step.step_row]}')
-    # Only continue to step if there are more source rows. Note 0 to n-1 for n rows of source
-    # todo: rows should be 1-n
-    if handle_step.step_row < len(source) - 1:
-        handle_step.step_row += 1
+        cpu.step()
+
+        # Highlight new row
         pad.attron(curses.color_pair(1))
-        pad.addstr(handle_step.step_row, 1, f'{handle_step.step_row:2d} {handle_step.step_row:04X}  {source[handle_step.step_row]}')
+        y, text = source_map[cpu.pc]
+        pad.addstr(y, 1, text)
+    except KeyError:
+        pass
 
-handle_step.step_row = 0
 
 def draw_registers(win, cpu):
     def ir2string(ir):
@@ -60,7 +73,7 @@ def draw_registers(win, cpu):
 
     def reg2string(reg):
         """Format the registers in to something readable."""
-        return f'{format(reg, "3")} 0x{format(reg, "02x")} b{format(reg, "08b")}'
+        return f'{reg:3} 0x{reg:02X} b{reg:08b}'
 
     win.attron(curses.color_pair(2))
     win.addstr(0, 0,   'Registers')
@@ -72,8 +85,8 @@ def draw_registers(win, cpu):
     win.addstr(6, 0,  f'X    {reg2string(cpu.registers[5])}')
     win.addstr(7, 0,  f'SPCH {reg2string(cpu.registers[6])}')
     win.addstr(8, 0,  f'SPCL {reg2string(cpu.registers[7])}')
-    win.addstr(9, 0,  f'PC   0x{format(cpu.pc, "04x")}')
-    win.addstr(10, 0, f'INST {ir2string(cpu.ir)}')
+    win.addstr(9, 0,  f'PC   0x{cpu.pc:04X}')
+    win.addstr(10, 0, f'IR   {ir2string(cpu.ir)}')
     win.noutrefresh()
 
 def draw_variables(win, cpu):
@@ -114,9 +127,24 @@ def run_emulator(stdscr, filename):
     # Source code pad
     source_pad = curses.newpad(len(source), 100)
     source_pad.attron(curses.color_pair(2))
+    line_address = {line: address for address, line in cpu.line_map.items() }
+    source_map = {}
     for y, text in enumerate(source):
-        source_pad.addstr(y, 1, f'{y:2d} {y:04X}  {text}')
+        line_number = y + 1
+        try:
+            address = line_address[line_number]
+            string = f'{line_number:2d} {address:04X}  {text}'
+            source_map[address] = (y, string)
+        except KeyError:
+            # Else the source line doenst have an address so print it but dont record
+            string = f'{line_number:2d}       {text}'
+        source_pad.addstr(y, 1, string)
     top_row = 0
+
+    # Highlight the first row
+    source_pad.attron(curses.color_pair(1))
+    y, text = source_map[cpu.pc]
+    source_pad.addstr(y, 1, text)
 
     # Registers window
     reg_win_height = 11
@@ -150,7 +178,7 @@ def run_emulator(stdscr, filename):
     while True:
         # Code window
         if k == ord(':'):
-            enter_command(stdscr, cpu)
+            enter_command(stdscr, cpu, source_pad)
         elif k == curses.KEY_DOWN:
             top_row += 1
             top_row = min(len(source)-height+2, top_row)
@@ -158,12 +186,7 @@ def run_emulator(stdscr, filename):
             top_row -= 1
             top_row = max(0, top_row)
         elif k == ord('s'):
-            handle_step(source_pad, cpu, source)
-
-        # Breakpoints
-        # todo: update breakpoints from the command mode
-        source_pad.attron(curses.color_pair(3))
-        source_pad.addch(21, 0, '●', curses.A_BOLD)
+            handle_step(source_pad, cpu, source_map)
 
         # Update the screen
         source_pad.noutrefresh(top_row, 0, 1, 0, height-2, width-reg_win_width)
