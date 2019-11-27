@@ -20,8 +20,8 @@ register = {
         'c': 2,
         'd': 3,
         'x': 5,
-        'spcl': 6,
-        'spch': 7
+        'spch': 6,
+        'spcl': 7
         }
 
 instruction = {

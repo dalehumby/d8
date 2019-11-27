@@ -8,8 +8,8 @@ map_reg_num = {
         'c': 2,
         'd': 3,
         'x': 5,
-        'spcl': 6,
-        'spch': 7
+        'spch': 6,
+        'spcl': 7
         }
 
 map_reg_num = { key.upper(): value for key, value in map_reg_num.items() }  # uppercase the keys
