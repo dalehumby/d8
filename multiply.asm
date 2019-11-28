@@ -9,12 +9,24 @@ Start:
 	STOP
 
 Multiply_Sub:
-	ROLC	C, A
-	MOV		A, C
+	; C:D = A * B (Use X as working memory)
+	LDI		C, 0
+	LDI		D, 0
 
-	ROLC	D, B
-	MOV		B, D
+NextBit:
+	CMP		B, C		; B == 0?
+	BEQ		Done		; If no more bits to multiply by then we're done
 
-	BRA		Multiply_Sub
+	RORC	X, B
+	MOV		B, X
+	BCC		NextBit
 
+	ADD		X, A, D
+	MOV		D, X
+
+	ROLC	X, A
+	BEQ		Done
+	MOV		A, X
+	BRA		NextBit
+Done:
 	RTS
