@@ -20,7 +20,7 @@ instruction = {
         'ldi': 1, 'ldd': 2, 'ldx': 3, 'std': 4, 'stx': 5,
         'mov':  6,
         'bra': 7, 'bcs': 8, 'bcc': 9, 'beq': 10, 'bne': 11, 'bsr': 12, 'rts': 13,
-        'add': 16, 'adc': 17, 'inc': 18, 'and': 19, 'or': 20, 'not': 21, 'xor': 22, 'lsl': 23, 'lsr': 24,
+        'add': 16, 'adc': 17, 'inc': 18, 'and': 19, 'or': 20, 'not': 21, 'xor': 22, 'rolc': 23, 'rorc': 24,
         'dec': 25,
         'clc': 26, 'sec': 27,
         'incx': 28
@@ -235,7 +235,7 @@ class Emulator:
         elif opc == 'rts':
             # To return from subroutine, copy the shaddow program counter in to the program counter
             self.pc = self.registers[map_reg_num['SPCH']] << 8 | self.registers[map_reg_num['SPCL']]
-        elif opc in ['add', 'adc', 'inc', 'and', 'or', 'not', 'xor', 'lsl', 'lsr', 'dec']:
+        elif opc in ['add', 'adc', 'inc', 'and', 'or', 'not', 'xor', 'rolc', 'rorc', 'dec']:
             self._alu(opc, opr)
         elif opc in ['clc', 'sec']:
             self.status['carry'] = (opc == 'sec')
@@ -275,15 +275,22 @@ class Emulator:
             data = self.registers[Rs1] ^ self.registers[Rs2]
         elif opcode == 'not':
             data = ~self.registers[Rs1]
-        elif opcode == 'lsl':
-            pass
-        elif opcode == 'lsr':
-            pass
+        elif opcode == 'rolc':
+            # Rotate left through carry
+            data = (self.registers[Rs1] << 1) + self.status['carry']
+            self.status['carry'] = data > 0xFF
+            data &= 0xFF
+        elif opcode == 'rorc':
+            # Rotate right through carry
+            data = int(self.status['carry']) << 8
+            data |= self.registers[Rs1]
+            self.status['carry'] = bool(data % 2)  # New carry value is the least sig bit
+            data = data >> 1
 
         # Set the status bits
         self.status['zero'] = data == 0
 
-        # If bit 7 is clear then save the result
+        # If bit 7 in IR is clear then save the result
         if operands & 0b10000000 == 0:
             self.registers[Rd] = data
 

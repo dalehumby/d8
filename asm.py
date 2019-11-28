@@ -30,7 +30,7 @@ instruction = {
         'ldi': 1, 'ldd': 2, 'ldx': 3, 'std': 4, 'stx': 5,
         'mov':  6,
         'bra': 7, 'bcs': 8, 'bcc': 9, 'beq': 10, 'bne': 11, 'bsr': 12, 'rts': 13,
-        'add': 16, 'adc': 17, 'inc': 18, 'and': 19, 'or': 20, 'not': 21, 'xor': 22, 'lsl': 23, 'lsr': 24,
+        'add': 16, 'adc': 17, 'inc': 18, 'and': 19, 'or': 20, 'not': 21, 'xor': 22, 'rolc': 23, 'rorc': 24,
         'dec': 25,
         'clc': 26, 'sec': 27,
         'incx': 28
@@ -66,7 +66,7 @@ def machine(opcode, operands):
         return op_abs11(opcode, operands[0])
     elif opcode in ['add', 'adc', 'and', 'or', 'xor']:
         return op_reg_reg_reg(opcode, operands[0], operands[1], operands[2])
-    elif opcode in ['not', 'lsl', 'lsr', 'inc', 'dec']:
+    elif opcode in ['not', 'rolc', 'rorc', 'inc', 'dec']:
         return op_reg_reg(opcode, operands[0], operands[1])
     elif opcode == 'cmp':
         # A compare is the same as an XOR, but in this case we discard the result

@@ -127,7 +127,7 @@ def run_emulator(stdscr, filename):
     # Source code pad
     source_pad = curses.newpad(len(source), 100)
     source_pad.attron(curses.color_pair(2))
-    line_address = {line: address for address, line in cpu.line_map.items() }
+    line_address = { line: address for address, line in cpu.line_map.items() }
     source_map = {}
     for y, text in enumerate(source):
         line_number = y + 1
@@ -137,11 +137,11 @@ def run_emulator(stdscr, filename):
             source_map[address] = (y, string)
         except KeyError:
             # Else the source line doenst have an address so print it but dont record
-            string = f'{line_number:2d}       {text}'
+            string = f'{line_number:2d} ....  {text}'
         source_pad.addstr(y, 1, string)
     top_row = 0
 
-    # Highlight the first row
+    # Highlight the first row of executable code
     source_pad.attron(curses.color_pair(1))
     y, text = source_map[cpu.pc]
     source_pad.addstr(y, 1, text)
