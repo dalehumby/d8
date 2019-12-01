@@ -2,7 +2,7 @@ import curses
 from math import ceil
 from emulate import Emulator
 
-def enter_command(screen, cpu, source_pad):
+def enter_command(screen, cpu, source_pad, source_map):
     """Handle command mode."""
     # Create command bar
     scr_height, scr_width = screen.getmaxyx()
@@ -15,7 +15,7 @@ def enter_command(screen, cpu, source_pad):
 
     # Capture command
     cmd = screen.getstr(scr_height-1, 1, 20)
-    message = handle_command(cmd, cpu, source_pad)
+    message = handle_command(cmd, cpu, source_pad, source_map)
 
     # Clear command bar
     # todo: print error messages here
@@ -24,7 +24,7 @@ def enter_command(screen, cpu, source_pad):
     screen.addstr(scr_height-1, 0, " "*(scr_width-1))
     screen.attroff(curses.color_pair(1))
 
-def handle_command(cmd, cpu, source_pad):
+def handle_command(cmd, cpu, source_pad, source_map):
     """Handle the command that is typed in.
     cmd is initially a byte array, so turn in to a string"""
     cmd = cmd.decode('utf-8').split()
@@ -33,34 +33,49 @@ def handle_command(cmd, cpu, source_pad):
     if cmd == 'q':
         quit()
     elif cmd == 'reset':
+        unhighlight_source(source_pad, cpu, source_map)
         cpu.reset()
+        highlight_source(source_pad, cpu, source_map)
     elif cmd == 'bd':
         # Delete a breakpoint
-        y = int(operands[0]) - 1
-        source_pad.attron(curses.color_pair(3))
-        source_pad.addch(y, 0, ' ', curses.A_BOLD)
+        line_address = { line: address for address, line in cpu.line_map.items() }
+        line = int(operands[0])
+        if line in line_address:
+            address = line_address[line]
+            cpu.delete_breakpoint(address)
+            source_pad.attron(curses.color_pair(3))
+            source_pad.addch(line-1, 0, ' ', curses.A_BOLD)
     elif cmd == 'ba':
         # Add a breakpoint
-        y = int(operands[0]) - 1
-        source_pad.attron(curses.color_pair(3))
-        source_pad.addch(y, 0, '●', curses.A_BOLD)
+        line_address = { line: address for address, line in cpu.line_map.items() }
+        line = int(operands[0])
+        if line in line_address:
+            address = line_address[line]
+            cpu.add_breakpoint(address)
+            source_pad.attron(curses.color_pair(3))
+            source_pad.addch(line-1, 0, '●', curses.A_BOLD)
 
 def handle_step(pad, cpu, source_map):
     """Handle a single step of the CPU."""
-    try:
-        # 'unhighlight' old row
-        pad.attron(curses.color_pair(2))
-        y, text = source_map[cpu.pc]
-        pad.addstr(y, 1, text)
+    unhighlight_source(pad, cpu, source_map)
+    cpu.step()
+    highlight_source(pad, cpu, source_map)
 
-        cpu.step()
 
-        # Highlight new row
+def highlight_source(pad, cpu, source_map):
+    """Highlight the source row, based on current PC."""
+    if cpu.pc in source_map:
         pad.attron(curses.color_pair(1))
         y, text = source_map[cpu.pc]
         pad.addstr(y, 1, text)
-    except KeyError:
-        pass
+
+
+def unhighlight_source(pad, cpu, source_map):
+    """Unhighlight the source row, based on current PC."""
+    if cpu.pc in source_map:
+        pad.attron(curses.color_pair(2))
+        y, text = source_map[cpu.pc]
+        pad.addstr(y, 1, text)
 
 
 def draw_registers(win, cpu):
@@ -98,7 +113,7 @@ def draw_variables(win, cpu):
         values = [ cpu.memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
         win.addstr(y, 0, f'{name}[{v["length"]}]: {values}')
         y += 1  # todo: can I do this in the iterator?
-    else:
+    if not cpu.variables:
         win.addstr(y, 0, '--')
     win.noutrefresh()
 
@@ -130,8 +145,8 @@ def run_emulator(stdscr, filename):
 
     # Set up colours
     curses.start_color()
-    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
-    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)  # Highlight
+    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)  # Normal text
     curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
 
     # Source code pad
@@ -188,7 +203,7 @@ def run_emulator(stdscr, filename):
     while True:
         # Code window
         if k == ord(':'):
-            enter_command(stdscr, cpu, source_pad)
+            enter_command(stdscr, cpu, source_pad, source_map)
         elif k == curses.KEY_DOWN:
             top_row += 1
             top_row = min(len(source)-scr_height+2, top_row)
@@ -197,6 +212,10 @@ def run_emulator(stdscr, filename):
             top_row = max(0, top_row)
         elif k == ord('s'):
             handle_step(source_pad, cpu, source_map)
+        elif k == ord('r'):
+            unhighlight_source(source_pad, cpu, source_map)
+            cpu.run()
+            highlight_source(source_pad, cpu, source_map)
 
         # Update the screen
         source_pad.noutrefresh(top_row, 0, 1, 0, scr_height-2, scr_width-right_win_width)

@@ -32,6 +32,7 @@ class Emulator:
     def __init__(self, filename):
         self.memory, self.line_map, self.variables = self._load_d8_file(filename)
         self.reset()
+        self.breakpoints = []
 
     def reset(self):
         self.pc = 0
@@ -49,6 +50,22 @@ class Emulator:
             self._fetch()
             opcode, operands = self._decode()
             self._execute(opcode, operands)
+
+    def run(self):
+        """Run the CPU until we hit a breakpoint or Stop flag is true."""
+        self.step()  # First step to move away from any breakpoints
+        while not self.status['stop'] and self.pc not in self.breakpoints:
+            self.step()
+
+    def add_breakpoint(self, address):
+        """Add a breakpoint."""
+        if address not in self.breakpoints:
+            self.breakpoints.append(address)
+
+    def delete_breakpoint(self, address):
+        """Delete an existing breakpoint."""
+        if address in self.breakpoints:
+            self.breakpoints.remove(address)
 
     def display_source(self, source):
         line_number = self.line_map[self.pc]
