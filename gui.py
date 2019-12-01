@@ -98,6 +98,8 @@ def draw_variables(win, cpu):
         values = [ cpu.memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
         win.addstr(y, 0, f'{name}[{v["length"]}]: {values}')
         y += 1  # todo: can I do this in the iterator?
+    else:
+        win.addstr(y, 0, '--')
     win.noutrefresh()
 
 
