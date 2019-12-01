@@ -36,11 +36,10 @@ instruction = {
         'incx': 28
         }
 
+
 def tokenise(line):
     """Split a line in to the component parts."""
-    l = re.split('\t|,', line)  # split on tabs, comma and space
-    l = [a.strip() for a in l]  # remove whitespace from each item
-    return list(filter(None, l))  # remove empty strings from list
+    return re.split(r'[^A-Za-z0-9_+]+', line)  # split on any character that is not (^) in that list []
 
 
 def parse(tokens):
@@ -72,7 +71,7 @@ def machine(opcode, operands):
         # A compare is the same as an XOR, but in this case we discard the result
         return op_reg_reg_reg('xor', 'a', operands[0], operands[1], compare=True)
     else:
-        return 65535
+        raise Exception(f'Unrecognised opcode {opcode}')
 
 def op(opcode):
     return instruction[opcode] << 11
