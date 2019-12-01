@@ -1,26 +1,27 @@
 import curses
+from math import ceil
 from emulate import Emulator
 
 def enter_command(screen, cpu, source_pad):
     """Handle command mode."""
     # Create command bar
-    height, width = screen.getmaxyx()
+    scr_height, scr_width = screen.getmaxyx()
     screen.attron(curses.color_pair(1))
-    screen.addstr(height-1, 0, ':' + " " * (width - 2))
-    screen.move(height - 1, 1)  # Put cursor in status bar
+    screen.addstr(scr_height-1, 0, ':' + " " * (scr_width - 2))
+    screen.move(scr_height - 1, 1)  # Put cursor in status bar
     curses.curs_set(1)  # Switch cursor on
     curses.echo()
     screen.refresh()
 
     # Capture command
-    cmd = screen.getstr(height-1, 1, 20)
+    cmd = screen.getstr(scr_height-1, 1, 20)
     message = handle_command(cmd, cpu, source_pad)
 
     # Clear command bar
     # todo: print error messages here
     curses.noecho()
     curses.curs_set(0)
-    screen.addstr(height-1, 0, " "*(width-1))
+    screen.addstr(scr_height-1, 0, " "*(scr_width-1))
     screen.attroff(curses.color_pair(1))
 
 def handle_command(cmd, cpu, source_pad):
@@ -94,19 +95,26 @@ def draw_variables(win, cpu):
     win.addstr(0, 0, 'Variables')
     y = 1
     for name, v in cpu.variables.items():
-        content = [ cpu.memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
-        win.addstr(y, 0, f'{name}[{v["length"]}]: {content}')
+        values = [ cpu.memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
+        win.addstr(y, 0, f'{name}[{v["length"]}]: {values}')
         y += 1  # todo: can I do this in the iterator?
     win.noutrefresh()
 
-def draw_memory(win):
-    win.attron(curses.color_pair(2))
-    win.addstr(0, 0, 'Memory')
-    win.addstr(1, 0, '0000 00 11 22 33 44 55 66 77')
-    win.addstr(2, 0, '0008 00 11 22 33 44 55 66 77')
-    win.addstr(3, 0, '0010 00 11 22 33 44 55 66 77')
-    win.addstr(4, 0, '0018 00 11 22 33 44 55 66 77')
-    win.noutrefresh()
+
+def draw_memory(pad, cpu):
+    pad.attron(curses.color_pair(2))
+    pad.addstr(0, 0, 'Memory')
+    y = 1
+    for base_adr in range(0, max(cpu.memory), 8):
+        values = ''
+        for adr in range(base_adr, base_adr+8):
+            try:
+                values += f'{cpu.memory[adr]:02X} '
+            except KeyError:
+                values += '-- '
+        pad.addstr(y, 0, f'{base_adr:04X}  {values}')
+        y += 1
+
 
 def run_emulator(stdscr, filename):
     # Instantiate the emulator, and load the source file
@@ -116,7 +124,7 @@ def run_emulator(stdscr, filename):
     # Clear and refresh the screen for a blank canvas
     stdscr.clear()
     stdscr.refresh()
-    height, width = stdscr.getmaxyx()
+    scr_height, scr_width = stdscr.getmaxyx()
 
     # Set up colours
     curses.start_color()
@@ -137,7 +145,7 @@ def run_emulator(stdscr, filename):
             source_map[address] = (y, string)
         except KeyError:
             # Else the source line doenst have an address so print it but dont record
-            string = f'{line_number:2d} ....  {text}'
+            string = f'{line_number:2d} ----  {text}'
         source_pad.addstr(y, 1, string)
     top_row = 0
 
@@ -146,32 +154,32 @@ def run_emulator(stdscr, filename):
     y, text = source_map[cpu.pc]
     source_pad.addstr(y, 1, text)
 
+    # Width of the right hand bar
+    right_win_width = 30
+
     # Registers window
     reg_win_height = 11
-    reg_win_width = 30
-    reg_win = curses.newwin(reg_win_height, reg_win_width, 1, width-reg_win_width)
+    reg_win = curses.newwin(reg_win_height, right_win_width, 1, scr_width-right_win_width)
 
     # Variables window
-    var_win_height = 5
-    var_win_width = reg_win_width
-    var_win = curses.newwin(var_win_height, var_win_width, reg_win_height+2, width-var_win_width)
+    var_win_height = 2 + len(cpu.variables)
+    var_win = curses.newwin(var_win_height, right_win_width, reg_win_height+2, scr_width-right_win_width)
 
-    # Memory window
+    # Memory pad
     # todo: Memory on a line on its own, with a pad below so can scroll around memory
-    mem_win_height = 5
-    mem_win_width = reg_win_width
-    mem_win = curses.newwin(mem_win_height, mem_win_width, reg_win_height+var_win_height+2, width-mem_win_width)
+    mem_pad_height = 2 + ceil(max(cpu.memory) / 8)
+    mem_pad = curses.newpad(mem_pad_height, right_win_width)
 
      # Render title bar
     stdscr.attron(curses.color_pair(1))
     stdscr.addstr(0, 0, filename)
-    stdscr.addstr(0, len(filename), " " * (width - len(filename) - 1))
+    stdscr.addstr(0, len(filename), " " * (scr_width - len(filename) - 1))
     stdscr.attroff(curses.color_pair(1))
 
     # Render the command bar
     curses.curs_set(0)
     stdscr.attron(curses.color_pair(1))
-    stdscr.addstr(height-1, 0, " "*(width-1))
+    stdscr.addstr(scr_height-1, 0, " "*(scr_width-1))
     stdscr.attroff(curses.color_pair(1))
 
     k = 0
@@ -181,7 +189,7 @@ def run_emulator(stdscr, filename):
             enter_command(stdscr, cpu, source_pad)
         elif k == curses.KEY_DOWN:
             top_row += 1
-            top_row = min(len(source)-height+2, top_row)
+            top_row = min(len(source)-scr_height+2, top_row)
         elif k == curses.KEY_UP:
             top_row -= 1
             top_row = max(0, top_row)
@@ -189,12 +197,11 @@ def run_emulator(stdscr, filename):
             handle_step(source_pad, cpu, source_map)
 
         # Update the screen
-        source_pad.noutrefresh(top_row, 0, 1, 0, height-2, width-reg_win_width)
-
-        # Update screen
+        source_pad.noutrefresh(top_row, 0, 1, 0, scr_height-2, scr_width-right_win_width)
         draw_registers(reg_win, cpu)
         draw_variables(var_win, cpu)
-        draw_memory(mem_win)
+        draw_memory(mem_pad, cpu)
+        mem_pad.noutrefresh(0, 0, 1+reg_win_height+var_win_height+2, scr_width-right_win_width, scr_height-2, scr_width)
 
         # Refresh the screen
         curses.doupdate()
