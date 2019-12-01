@@ -57,7 +57,7 @@ class Emulator:
 
     def display_variables(self):
         """Display all the variables and their content."""
-        print(f'Stauts: {self.status}')
+        print(f'Status: {self.status}')
         print(f'Registers: {self.registers}\tPC: 0x{self.pc:04x}')
         for name, v in self.variables.items():
             content = [ self.memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
@@ -137,7 +137,7 @@ class Emulator:
         Decode the instruction register (ir) in to the opcode and operations.
         Map the integer opcode to the text instruction.
         """
-        opcode =   (self.ir & 0b1111100000000000) >> 11
+        opcode =  (self.ir & 0b1111100000000000) >> 11
         operands = self.ir & 0b0000011111111111
         opcode = instruction_map[opcode]
         return opcode, operands
