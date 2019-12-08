@@ -25,6 +25,12 @@ instruction = {
         'clc': 26, 'sec': 27,
         'incx': 28
         }
+# possibly add:
+# 14: ldsp, 15: stsp
+# 29: push, 30: pop, 31: sub
+# get rid of ADD if CLC first then can use ADC
+# could also get rid of inverse logic branches: BCC, BNE
+
 
 instruction_map = {value: key for key, value in instruction.items() }
 
