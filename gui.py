@@ -28,6 +28,8 @@ def handle_command(cmd, cpu, source_pad, source_map):
     """Handle the command that is typed in.
     cmd is initially a byte array, so turn in to a string"""
     cmd = cmd.decode('utf-8').split()
+    if not cmd:
+        return
     operands = cmd[1:]
     cmd = cmd[0]
     if cmd == 'q':
