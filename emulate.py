@@ -305,7 +305,7 @@ class Emulator:
             data = data >> 1
 
         # Set the status bits
-        self.status['zero'] = data == 0
+        self.status['zero'] = (data == 0)
 
         # If bit 7 in IR is clear then save the result
         if operands & 0b10000000 == 0:
