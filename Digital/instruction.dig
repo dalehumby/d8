@@ -278,7 +278,7 @@ the result back to the register.</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>DIR_Sel</string>
+          <string>DIR_sel</string>
         </entry>
       </elementAttributes>
       <pos x="680" y="600"/>
@@ -330,7 +330,7 @@ the result back to the register.</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>IMM_Sel</string>
+          <string>IMM_sel</string>
         </entry>
       </elementAttributes>
       <pos x="700" y="760"/>
@@ -370,12 +370,12 @@ the result back to the register.</string>
           <string>Description</string>
           <string>Source register R_S0 can either be the first or 
 second operand, and this bit chooses which one.
-L=1st operand
-H=2nd operand</string>
+0=1st operand
+1=2nd operand</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>RS0_Sel</string>
+          <string>Rs_src</string>
         </entry>
       </elementAttributes>
       <pos x="720" y="420"/>
