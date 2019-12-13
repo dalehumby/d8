@@ -1,22 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <circuit>
   <version>1</version>
-  <attributes/>
+  <attributes>
+    <entry>
+      <string>Width</string>
+      <int>5</int>
+    </entry>
+  </attributes>
   <visualElements>
-    <visualElement>
-      <elementName>In</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Label</string>
-          <string>OPC</string>
-        </entry>
-        <entry>
-          <string>Bits</string>
-          <int>5</int>
-        </entry>
-      </elementAttributes>
-      <pos x="80" y="900"/>
-    </visualElement>
     <visualElement>
       <elementName>In</elementName>
       <elementAttributes>
@@ -44,6 +35,20 @@
         </entry>
       </elementAttributes>
       <pos x="80" y="440"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>OPC</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>5</int>
+        </entry>
+      </elementAttributes>
+      <pos x="80" y="900"/>
     </visualElement>
     <visualElement>
       <elementName>Splitter</elementName>
@@ -196,7 +201,7 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>ALU_o</string>
+          <string>ALU_r</string>
         </entry>
       </elementAttributes>
       <pos x="1140" y="500"/>
@@ -361,26 +366,26 @@
       <elementName>Out</elementName>
       <elementAttributes>
         <entry>
-          <string>Label</string>
-          <string>C_o</string>
+          <string>Description</string>
+          <string>Zero detect output</string>
         </entry>
         <entry>
-          <string>Description</string>
-          <string>Carry output</string>
+          <string>Label</string>
+          <string>Z_o</string>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="1020"/>
+      <pos x="1220" y="640"/>
     </visualElement>
     <visualElement>
       <elementName>Splitter</elementName>
       <elementAttributes>
         <entry>
-          <string>Input Splitting</string>
-          <string>1,8</string>
-        </entry>
-        <entry>
           <string>splitterSpreading</string>
           <int>2</int>
+        </entry>
+        <entry>
+          <string>Input Splitting</string>
+          <string>1,8</string>
         </entry>
         <entry>
           <string>Output Splitting</string>
@@ -393,12 +398,12 @@
       <elementName>Rectangle</elementName>
       <elementAttributes>
         <entry>
-          <string>Label</string>
-          <string>ROLC</string>
-        </entry>
-        <entry>
           <string>RectHeight</string>
           <int>4</int>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>ROLC</string>
         </entry>
       </elementAttributes>
       <pos x="640" y="960"/>
@@ -443,7 +448,7 @@
           <long>0</long>
         </entry>
       </elementAttributes>
-      <pos x="940" y="940"/>
+      <pos x="940" y="1160"/>
     </visualElement>
     <visualElement>
       <elementName>Comparator</elementName>
@@ -474,14 +479,24 @@
       <elementAttributes>
         <entry>
           <string>Description</string>
-          <string>Zero detect output</string>
+          <string>Carry output</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>Z_o</string>
+          <string>C_o</string>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="640"/>
+      <pos x="1220" y="1020"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Not</elementName>
+      <elementAttributes>
+        <entry>
+          <string>wideShape</string>
+          <boolean>true</boolean>
+        </entry>
+      </elementAttributes>
+      <pos x="900" y="920"/>
     </visualElement>
   </visualElements>
   <wires>
@@ -546,6 +561,10 @@
       <p2 x="840" y="1160"/>
     </wire>
     <wire>
+      <p1 x="940" y="1160"/>
+      <p2 x="960" y="1160"/>
+    </wire>
+    <wire>
       <p1 x="960" y="1160"/>
       <p2 x="980" y="1160"/>
     </wire>
@@ -575,7 +594,7 @@
     </wire>
     <wire>
       <p1 x="700" y="400"/>
-      <p2 x="920" y="400"/>
+      <p2 x="880" y="400"/>
     </wire>
     <wire>
       <p1 x="560" y="400"/>
@@ -622,6 +641,10 @@
       <p2 x="980" y="920"/>
     </wire>
     <wire>
+      <p1 x="880" y="920"/>
+      <p2 x="900" y="920"/>
+    </wire>
+    <wire>
       <p1 x="140" y="920"/>
       <p2 x="160" y="920"/>
     </wire>
@@ -662,7 +685,7 @@
       <p2 x="1140" y="540"/>
     </wire>
     <wire>
-      <p1 x="920" y="860"/>
+      <p1 x="880" y="860"/>
       <p2 x="960" y="860"/>
     </wire>
     <wire>
@@ -740,10 +763,6 @@
     <wire>
       <p1 x="1100" y="620"/>
       <p2 x="1140" y="620"/>
-    </wire>
-    <wire>
-      <p1 x="940" y="940"/>
-      <p2 x="960" y="940"/>
     </wire>
     <wire>
       <p1 x="960" y="940"/>
@@ -846,16 +865,16 @@
       <p2 x="960" y="400"/>
     </wire>
     <wire>
-      <p1 x="960" y="860"/>
-      <p2 x="960" y="880"/>
-    </wire>
-    <wire>
       <p1 x="960" y="580"/>
       <p2 x="960" y="600"/>
     </wire>
     <wire>
       <p1 x="960" y="940"/>
       <p2 x="960" y="960"/>
+    </wire>
+    <wire>
+      <p1 x="960" y="860"/>
+      <p2 x="960" y="880"/>
     </wire>
     <wire>
       <p1 x="960" y="960"/>
@@ -904,10 +923,6 @@
     <wire>
       <p1 x="960" y="640"/>
       <p2 x="960" y="660"/>
-    </wire>
-    <wire>
-      <p1 x="960" y="900"/>
-      <p2 x="960" y="920"/>
     </wire>
     <wire>
       <p1 x="960" y="400"/>
@@ -986,6 +1001,14 @@
       <p2 x="560" y="660"/>
     </wire>
     <wire>
+      <p1 x="880" y="400"/>
+      <p2 x="880" y="860"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="860"/>
+      <p2 x="880" y="920"/>
+    </wire>
+    <wire>
       <p1 x="180" y="580"/>
       <p2 x="180" y="700"/>
     </wire>
@@ -1000,10 +1023,6 @@
     <wire>
       <p1 x="760" y="480"/>
       <p2 x="760" y="640"/>
-    </wire>
-    <wire>
-      <p1 x="920" y="400"/>
-      <p2 x="920" y="860"/>
     </wire>
     <wire>
       <p1 x="920" y="1040"/>
