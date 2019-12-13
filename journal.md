@@ -1,5 +1,19 @@
 # Journal / notes of what I have done
 
+## Wed 11 Dec: Design of circuits
+The last few days been working on the CPU simulator using 'Digital', and digital circuit simulator written by a prof. to teach design to his students. Pretty cool, and not too buggy. Also seems that it presents a TCP port that you can connect an emulator/IDE to and step through your circuit and code at the same time.
+
+I've created
+- registers
+- program counter
+- ALU
+- instruction register and wires to pull out the various opcodes and operands.
+
+Todo:
+- controller and state machine
+- clock with halt bit
+- status code register
+
 ## Sun 8 Dec: Major rethink
 Watched many of [Ben Eater's](https://eater.net/8bit) 8-bit CPU build videos yesterday. Basically all of them.
 Also been thinking over the last week that I'd like to (if possible...) be able to write a C compiler (or mod an existing compiler) so that I could (maybe???) get a small OS running, like Minix or similar. Wouldn't it be cool if I could boot a small Linux distro? I know it's a far-fetched idea, but I think it'd be more fun if the machine could do something (servre a webpage? respond to a ping over the internet?) than ... basically nothing. This rules out an extensive relay computer build because it's painfully slow, and so limited that it couldn't do much other than some calculations. 

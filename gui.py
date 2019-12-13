@@ -100,11 +100,12 @@ def draw_registers(win, cpu):
     win.addstr(3, 0,  f'B    {reg2string(cpu.registers[1])}')
     win.addstr(4, 0,  f'C    {reg2string(cpu.registers[2])}')
     win.addstr(5, 0,  f'D    {reg2string(cpu.registers[3])}')
-    win.addstr(6, 0,  f'X    {reg2string(cpu.registers[5])}')
-    win.addstr(7, 0,  f'SPCH {reg2string(cpu.registers[6])}')
-    win.addstr(8, 0,  f'SPCL {reg2string(cpu.registers[7])}')
-    win.addstr(9, 0,  f'PC   0x{cpu.pc:04X}')
-    win.addstr(10, 0, f'IR   {ir2string(cpu.ir)}')
+    win.addstr(6, 0,  f'PAGE {reg2string(cpu.registers[4])}')
+    win.addstr(7, 0,  f'X    {reg2string(cpu.registers[5])}')
+    win.addstr(8, 0,  f'SPCH {reg2string(cpu.registers[6])}')
+    win.addstr(9, 0,  f'SPCL {reg2string(cpu.registers[7])}')
+    win.addstr(10, 0, f'PC   0x{cpu.pc:04X}')
+    win.addstr(11, 0, f'IR   {ir2string(cpu.ir)}')
     win.noutrefresh()
 
 def draw_variables(win, cpu):
@@ -177,7 +178,7 @@ def run_emulator(stdscr, filename):
     right_win_width = 30
 
     # Registers window
-    reg_win_height = 11
+    reg_win_height = 12
     reg_win = curses.newwin(reg_win_height, right_win_width, 1, scr_width-right_win_width)
 
     # Variables window

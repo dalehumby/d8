@@ -7,6 +7,7 @@ map_reg_num = {
         'b': 1,
         'c': 2,
         'd': 3,
+        'page': 4,
         'x': 5,
         'spch': 6,
         'spcl': 7
@@ -20,11 +21,11 @@ instruction = {
         'ldi': 1, 'ldd': 2, 'ldx': 3, 'std': 4, 'stx': 5,
         'mov':  6,
         'bra': 7, 'bcs': 8, 'bcc': 9, 'beq': 10, 'bne': 11, 'bsr': 12, 'rts': 13,
-        'add': 16, 'adc': 17, 'inc': 18, 'and': 19, 'or': 20, 'not': 21, 'xor': 22, 'rolc': 23, 'rorc': 24,
-        'dec': 25,
+        'add': 16, 'adc': 17, 'inc': 18, 'dec': 19, 'and': 20, 'or': 21, 'xor': 22, 'not': 23, 'rolc': 24, 'rorc': 25,
         'clc': 26, 'sec': 27,
         'incx': 28
         }
+
 # possibly add:
 # 14: ldsp, 15: stsp
 # 29: push, 30: pop, 31: sub
