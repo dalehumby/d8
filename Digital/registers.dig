@@ -126,7 +126,7 @@ Write from data bus in to register.</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>Rd</string>
+          <string>R_d</string>
         </entry>
         <entry>
           <string>Bits</string>
