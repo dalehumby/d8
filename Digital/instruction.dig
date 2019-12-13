@@ -133,18 +133,36 @@
       <elementAttributes>
         <entry>
           <string>Description</string>
-          <string>Opcode output</string>
+          <string>Direct address gated on to Address bus</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>OPC</string>
+          <string>A_out</string>
         </entry>
         <entry>
           <string>Bits</string>
-          <int>5</int>
+          <int>16</int>
         </entry>
       </elementAttributes>
-      <pos x="600" y="220"/>
+      <pos x="780" y="540"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>Immediate data gated on to Data bus</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>D_out</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>8</int>
+        </entry>
+      </elementAttributes>
+      <pos x="780" y="700"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -189,24 +207,6 @@
       <pos x="780" y="460"/>
     </visualElement>
     <visualElement>
-      <elementName>Out</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Immediate data gated on to Data bus</string>
-        </entry>
-        <entry>
-          <string>Label</string>
-          <string>D_out</string>
-        </entry>
-        <entry>
-          <string>Bits</string>
-          <int>8</int>
-        </entry>
-      </elementAttributes>
-      <pos x="780" y="700"/>
-    </visualElement>
-    <visualElement>
       <elementName>Splitter</elementName>
       <elementAttributes>
         <entry>
@@ -239,24 +239,6 @@
       <elementAttributes>
         <entry>
           <string>Description</string>
-          <string>Direct address gated on to Address bus</string>
-        </entry>
-        <entry>
-          <string>Label</string>
-          <string>A_out</string>
-        </entry>
-        <entry>
-          <string>Bits</string>
-          <int>16</int>
-        </entry>
-      </elementAttributes>
-      <pos x="780" y="540"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Out</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
           <string>Used to indicate whether a result should be
 written to R_d.
 Used for CMP, where we do an XOR, but don&apos;t write
@@ -268,6 +250,24 @@ the result back to the register.</string>
         </entry>
       </elementAttributes>
       <pos x="600" y="340"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>Opcode output</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>OPC</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>5</int>
+        </entry>
+      </elementAttributes>
+      <pos x="600" y="220"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
