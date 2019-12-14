@@ -182,10 +182,6 @@ class Emulator:
         Rd = operands >> 8
         Rs1 = (operands & 0b01110000) >> 4
         Rs2 = operands & 0b00000111
-        if Rd in [Rs1, Rs2]:
-            # Limitation of the CPU is you cannot save data in to the same register
-            # as the one you are reading from
-            raise Exception('Source register cannot also be destination register')
         return Rd, Rs1, Rs2
 
     def _get_reg_abs8(self, operands):

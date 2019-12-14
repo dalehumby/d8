@@ -12,16 +12,16 @@ Start:
     LDI     X, &fib
     LDI     A, 0
     STX     A
-    INCX
+    INC     X, X
     LDI     B, 1
     STX     B
-    INCX
+    INC     X, X
 
 Loop:
     ; Calcualte the next value in the sequence
     ADD     C, A, B
     STX     C
-    INCX
+    INC     X, X
     MOV     A, B
     MOV     B, C
 

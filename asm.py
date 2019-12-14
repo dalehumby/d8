@@ -32,8 +32,7 @@ instruction = {
         'mov':  6,
         'bra': 7, 'bcs': 8, 'bcc': 9, 'beq': 10, 'bne': 11, 'bsr': 12, 'rts': 13,
         'add': 16, 'adc': 17, 'inc': 18, 'dec': 19, 'and': 20, 'or': 21, 'xor': 22, 'not': 23, 'rolc': 24, 'rorc': 25,
-        'clc': 26, 'sec': 27,
-        'incx': 28
+        'clc': 26, 'sec': 27
         }
 
 
@@ -53,7 +52,7 @@ def parse(tokens):
 
 def machine(opcode, operands):
     """Create the machine code from the opcode and operands."""
-    if opcode in ['stop', 'rts', 'clc', 'sec', 'incx']:
+    if opcode in ['stop', 'rts', 'clc', 'sec']:
         return op(opcode)
     elif opcode in ['ldi', 'ldd', 'std']:
         return op_reg_abs8(opcode, operands[0], operands[1])
