@@ -206,25 +206,27 @@ class Emulator:
            self.registers[Rd] = data
            #print(f'{map_num_reg[Rd]}<-{data}')
         elif opc == 'ldd':
-           Rd, address = self._get_reg_abs8(opr)
+           Rd, lsb = self._get_reg_abs8(opr)
+           address = self.registers[map_reg_num['PAGE']] << 8 | lsb
            data = self.memory[address]
            self.registers[Rd] = data
            #print(f'{map_num_reg[Rd]}<-{data}<-memory[{address}]')
         elif opc == 'ldx':
             Rd = self._get_reg(opr)
-            address = self.registers[map_reg_num['X']]
+            address = self.registers[map_reg_num['PAGE']] << 8 | self.registers[map_reg_num['X']]
             data = self.memory[address]
             self.registers[Rd] = data
             #print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
         elif opc == 'std':
-            Rs, address = self._get_reg_abs8(opr)
+            Rs, lsb = self._get_reg_abs8(opr)
+            address = self.registers[map_reg_num['PAGE']] << 8 | lsb
             data = self.registers[Rs]
             self.memory[address] = data
             #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
         elif opc == 'stx':
             Rs = self._get_reg(opr)
             data = self.registers[Rs]
-            address = self.registers[map_reg_num['X']]
+            address = self.registers[map_reg_num['PAGE']] << 8 | self.registers[map_reg_num['X']]
             self.memory[address] = data
             #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
         elif opc == 'mov':

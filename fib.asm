@@ -1,13 +1,10 @@
 ; Calculate the first 10 numbers in the Fibonacci sequence
 
-.reset  Start
 .define LENGTH  10
-.data   fib     LENGTH
 
 Start:
-    ; Define the end condition
-	LDI		PAGE, 1 ; change to page 1
-    LDI     D, &fib+LENGTH      
+    LDI     PAGE, 1             ; change to page 1
+    LDI     D, &fib+LENGTH      ; Define the end condition
 
     ; Initialise the Fibonacci sequence
     LDI     X, &fib
@@ -30,3 +27,7 @@ Loop:
     CMP     X, D
     BNE     Loop
     STOP
+
+; Data in Page 1
+.origin 0x0100
+.data   fib     LENGTH
