@@ -105,6 +105,8 @@ def resolve_symbol(symbol):
 
 def op_reg_abs8(opcode, R, abs):
     abs = resolve_symbol(abs)
+    # NOTE: Should be: abs = resolve_symbol(abs) % 255 and leave it up to the programmer to change the PAGE
+    # But for now lets throw an error so not too complicated
     if abs >= 255:
         raise Exception('Absolute value must be less than 255')
     return instruction[opcode] << 11 | register[R] << 8 | abs
