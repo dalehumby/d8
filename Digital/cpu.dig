@@ -820,7 +820,7 @@ or control manually</string>
         </entry>
         <entry>
           <string>Bits</string>
-          <int>18</int>
+          <int>20</int>
         </entry>
       </elementAttributes>
       <pos x="1800" y="-300"/>
@@ -1398,12 +1398,12 @@ or control manually</string>
       <elementName>Break</elementName>
       <elementAttributes>
         <entry>
-          <string>Label</string>
-          <string>BRK</string>
-        </entry>
-        <entry>
           <string>Cycles</string>
           <int>10000</int>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>BRK</string>
         </entry>
       </elementAttributes>
       <pos x="680" y="-60"/>
@@ -1450,6 +1450,26 @@ or control manually</string>
         </entry>
       </elementAttributes>
       <pos x="580" y="-40"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>NetName</string>
+          <string>C_ctrl</string>
+        </entry>
+      </elementAttributes>
+      <pos x="1740" y="80"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>NetName</string>
+          <string>C_src</string>
+        </entry>
+      </elementAttributes>
+      <pos x="1740" y="100"/>
     </visualElement>
   </visualElements>
   <wires>
@@ -1612,6 +1632,10 @@ or control manually</string>
     <wire>
       <p1 x="-20" y="80"/>
       <p2 x="0" y="80"/>
+    </wire>
+    <wire>
+      <p1 x="1720" y="80"/>
+      <p2 x="1740" y="80"/>
     </wire>
     <wire>
       <p1 x="1720" y="-20"/>
@@ -1836,6 +1860,10 @@ or control manually</string>
     <wire>
       <p1 x="620" y="-420"/>
       <p2 x="700" y="-420"/>
+    </wire>
+    <wire>
+      <p1 x="1720" y="100"/>
+      <p2 x="1740" y="100"/>
     </wire>
     <wire>
       <p1 x="1740" y="-360"/>

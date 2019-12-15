@@ -20,8 +20,8 @@ This morning I added in a D-type flip-flop to start the run sequence at the righ
 ### Todo:
 - [ ] add paging to the emulator
 - [x] output the RAM hex file from my assembler, so I don't have to do it manually
-- [ ] finish adding in BCC, BCS
-- [ ] try some other programs (like multiply)
+- [x] finish adding in BCC, BCS
+- [x] try some other programs (like multiply)
 - [ ] try link Digital to my emulator using its TCP/IP protocol
 - [ ] add a peripheral? screen or keyboard?
 

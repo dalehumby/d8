@@ -21,7 +21,7 @@
         </entry>
         <entry>
           <string>Bits</string>
-          <int>18</int>
+          <int>20</int>
         </entry>
         <entry>
           <string>Data</string>
@@ -130,7 +130,7 @@
         </entry>
         <entry>
           <string>Bits</string>
-          <int>18</int>
+          <int>20</int>
         </entry>
       </elementAttributes>
       <pos x="720" y="120"/>
@@ -198,11 +198,11 @@
       <elementAttributes>
         <entry>
           <string>Input Splitting</string>
-          <string>18</string>
+          <string>20</string>
         </entry>
         <entry>
           <string>Output Splitting</string>
-          <string>17-17,16-16,15-15,14-14,13-13,12-12,11-11,10-10,9-9,8-8,7-7,6-6,5-5,4-4,3-3,2-2,1-1,0-0</string>
+          <string>19-19,18-18,17-17,16-16,15-15,14-14,13-13,12-12,11-11,10-10,9-9,8-8,7-7,6-6,5-5,4-4,3-3,2-2,1-1,0-0</string>
         </entry>
       </elementAttributes>
       <pos x="660" y="180"/>
@@ -382,7 +382,7 @@
       <elementAttributes>
         <entry>
           <string>Bits</string>
-          <int>18</int>
+          <int>20</int>
         </entry>
         <entry>
           <string>flipSelPos</string>
@@ -425,6 +425,37 @@
         </entry>
       </elementAttributes>
       <pos x="160" y="300"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>C_ctrl</string>
+        </entry>
+        <entry>
+          <string>Description</string>
+          <string>Force the Carry bit to this state</string>
+        </entry>
+      </elementAttributes>
+      <pos x="720" y="540"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>C_src</string>
+        </entry>
+        <entry>
+          <string>Description</string>
+          <string>The source that the Status register must use 
+for the Carry bit.
+0 = ALU
+1 = Controller</string>
+        </entry>
+      </elementAttributes>
+      <pos x="880" y="560"/>
     </visualElement>
   </visualElements>
   <wires>
@@ -529,6 +560,10 @@
       <p2 x="880" y="400"/>
     </wire>
     <wire>
+      <p1 x="680" y="560"/>
+      <p2 x="880" y="560"/>
+    </wire>
+    <wire>
       <p1 x="680" y="340"/>
       <p2 x="720" y="340"/>
     </wire>
@@ -591,6 +626,10 @@
     <wire>
       <p1 x="680" y="380"/>
       <p2 x="720" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="680" y="540"/>
+      <p2 x="720" y="540"/>
     </wire>
     <wire>
       <p1 x="240" y="200"/>

@@ -22,12 +22,12 @@ if __name__ == "__main__":
         c = line[4]
         cycle = line[5]
         output = line[7:-1]
-        assert len(output) == 18, len(output)
+        assert len(output) == 20, len(output)
 
         output = [ x if x else '0' for x in output ]
         output = int(''.join(output), 2)
 
-        print(f'opc={opcode}, z={z}, c={c}, cy={cycle}, out={output:018b} {output:05X}')
+        print(f'opc={opcode}, z={z}, c={c}, cy={cycle}, out={output:020b} {output:05X}')
 
         if opcode == 'X':
             opcode = list(range(32))
@@ -55,7 +55,7 @@ if __name__ == "__main__":
                     for cyc in cycle:
                         address = op << 4 | z_ << 3 | c_ << 2 | cyc
                         rom[address] = output
-                        print(f'{address:09b} {output:018b}')
+                        print(f'{address:09b} {output:020b}')
 
     with open('control.hex', 'w') as f:
         f.write('v2.0 raw\n')
