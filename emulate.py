@@ -287,6 +287,7 @@ class Emulator:
             data, self.status['carry'] = _full_add(self.registers[Rs1], 0, 1)
         elif opcode == 'dec':
             data, self.status['carry'] = _full_add(self.registers[Rs1], 0xFF, 0)
+            self.status['carry'] = not self.status['carry']  # for a dec, the carry logic is inverted, so carry means borrow here
         elif opcode == 'and':
             data = self.registers[Rs1] & self.registers[Rs2]
         elif opcode == 'or':
