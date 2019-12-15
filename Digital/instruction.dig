@@ -144,7 +144,7 @@
           <int>16</int>
         </entry>
       </elementAttributes>
-      <pos x="780" y="680"/>
+      <pos x="780" y="620"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -294,11 +294,13 @@ the result back to the register.</string>
       <elementAttributes>
         <entry>
           <string>Description</string>
-          <string>Direct addressing mode</string>
+          <string>8-bit direct addressing mode
+Used for getting data to/from RAM in conjuction 
+with the PAGE register</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>DIR_sel</string>
+          <string>DIR8_sel</string>
         </entry>
       </elementAttributes>
       <pos x="700" y="740"/>
@@ -315,7 +317,7 @@ the result back to the register.</string>
           <boolean>true</boolean>
         </entry>
       </elementAttributes>
-      <pos x="700" y="540"/>
+      <pos x="720" y="540"/>
     </visualElement>
     <visualElement>
       <elementName>Driver</elementName>
@@ -336,14 +338,15 @@ the result back to the register.</string>
       <elementAttributes>
         <entry>
           <string>Description</string>
-          <string>Immediate mode</string>
+          <string>11-bit direct addressing mode
+Used for branching</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>IMM_sel</string>
+          <string>DIR11_sel</string>
         </entry>
       </elementAttributes>
-      <pos x="700" y="860"/>
+      <pos x="700" y="620"/>
     </visualElement>
     <visualElement>
       <elementName>Splitter</elementName>
@@ -400,17 +403,14 @@ the result back to the register.</string>
       <elementAttributes>
         <entry>
           <string>Description</string>
-          <string>Source register R_S0 can either be the first or 
-second operand, and this bit chooses which one.
-0=1st operand
-1=2nd operand</string>
+          <string>Immediate mode</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>Rs_src</string>
+          <string>IMM_sel</string>
         </entry>
       </elementAttributes>
-      <pos x="720" y="420"/>
+      <pos x="700" y="860"/>
     </visualElement>
     <visualElement>
       <elementName>Driver</elementName>
@@ -425,34 +425,6 @@ second operand, and this bit chooses which one.
         </entry>
       </elementAttributes>
       <pos x="720" y="680"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Const</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Value</string>
-          <long>0</long>
-        </entry>
-      </elementAttributes>
-      <pos x="680" y="580"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Rectangle</elementName>
-      <elementAttributes>
-        <entry>
-          <string>RectHeight</string>
-          <int>7</int>
-        </entry>
-        <entry>
-          <string>Label</string>
-          <string>Direct without paging</string>
-        </entry>
-        <entry>
-          <string>RectWidth</string>
-          <int>25</int>
-        </entry>
-      </elementAttributes>
-      <pos x="420" y="500"/>
     </visualElement>
     <visualElement>
       <elementName>Splitter</elementName>
@@ -473,18 +445,35 @@ second operand, and this bit chooses which one.
       <pos x="540" y="680"/>
     </visualElement>
     <visualElement>
-      <elementName>Const</elementName>
+      <elementName>In</elementName>
       <elementAttributes>
         <entry>
-          <string>Value</string>
-          <long>0</long>
+          <string>Description</string>
+          <string>Source register R_S0 can either be the first or 
+second operand, and this bit chooses which one.
+0=1st operand
+1=2nd operand</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>Rs_src</string>
+        </entry>
+      </elementAttributes>
+      <pos x="720" y="420"/>
+    </visualElement>
+    <visualElement>
+      <elementName>PullDown</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="3"/>
         </entry>
         <entry>
           <string>Bits</string>
           <int>8</int>
         </entry>
       </elementAttributes>
-      <pos x="500" y="680"/>
+      <pos x="520" y="680"/>
     </visualElement>
   </visualElements>
   <wires>
@@ -525,10 +514,6 @@ second operand, and this bit chooses which one.
       <p2 x="620" y="580"/>
     </wire>
     <wire>
-      <p1 x="680" y="580"/>
-      <p2 x="700" y="580"/>
-    </wire>
-    <wire>
       <p1 x="700" y="740"/>
       <p2 x="720" y="740"/>
     </wire>
@@ -550,14 +535,14 @@ second operand, and this bit chooses which one.
     </wire>
     <wire>
       <p1 x="740" y="680"/>
-      <p2 x="780" y="680"/>
+      <p2 x="760" y="680"/>
     </wire>
     <wire>
       <p1 x="560" y="680"/>
       <p2 x="700" y="680"/>
     </wire>
     <wire>
-      <p1 x="500" y="680"/>
+      <p1 x="520" y="680"/>
       <p2 x="540" y="680"/>
     </wire>
     <wire>
@@ -567,6 +552,14 @@ second operand, and this bit chooses which one.
     <wire>
       <p1 x="460" y="620"/>
       <p2 x="540" y="620"/>
+    </wire>
+    <wire>
+      <p1 x="760" y="620"/>
+      <p2 x="780" y="620"/>
+    </wire>
+    <wire>
+      <p1 x="700" y="620"/>
+      <p2 x="720" y="620"/>
     </wire>
     <wire>
       <p1 x="300" y="240"/>
@@ -626,11 +619,15 @@ second operand, and this bit chooses which one.
     </wire>
     <wire>
       <p1 x="640" y="540"/>
-      <p2 x="680" y="540"/>
+      <p2 x="700" y="540"/>
     </wire>
     <wire>
       <p1 x="560" y="540"/>
       <p2 x="620" y="540"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="540"/>
+      <p2 x="760" y="540"/>
     </wire>
     <wire>
       <p1 x="720" y="820"/>
@@ -639,6 +636,10 @@ second operand, and this bit chooses which one.
     <wire>
       <p1 x="720" y="700"/>
       <p2 x="720" y="740"/>
+    </wire>
+    <wire>
+      <p1 x="720" y="560"/>
+      <p2 x="720" y="620"/>
     </wire>
     <wire>
       <p1 x="500" y="260"/>
@@ -653,12 +654,16 @@ second operand, and this bit chooses which one.
       <p2 x="120" y="320"/>
     </wire>
     <wire>
-      <p1 x="700" y="260"/>
-      <p2 x="700" y="340"/>
+      <p1 x="760" y="540"/>
+      <p2 x="760" y="620"/>
     </wire>
     <wire>
-      <p1 x="700" y="560"/>
-      <p2 x="700" y="580"/>
+      <p1 x="760" y="620"/>
+      <p2 x="760" y="680"/>
+    </wire>
+    <wire>
+      <p1 x="700" y="260"/>
+      <p2 x="700" y="340"/>
     </wire>
     <wire>
       <p1 x="460" y="340"/>

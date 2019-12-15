@@ -18,7 +18,7 @@ Start:
     INC     X, X
 
 Loop:
-    ; Calcualte the next value in the sequence
+    ; Calculate the next value in the sequence
     ADD     C, A, B
     STX     C
     INC     X, X

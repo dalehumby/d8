@@ -672,7 +672,7 @@ Write from data bus in to register.</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>DIR_sel</string>
+          <string>DIR8_sel</string>
         </entry>
       </elementAttributes>
       <pos x="820" y="340"/>

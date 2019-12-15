@@ -11,7 +11,7 @@
           <string>Carry</string>
         </entry>
       </elementAttributes>
-      <pos x="380" y="400"/>
+      <pos x="420" y="400"/>
     </visualElement>
     <visualElement>
       <elementName>Register</elementName>
@@ -21,57 +21,77 @@
           <string>Zero</string>
         </entry>
       </elementAttributes>
-      <pos x="380" y="280"/>
+      <pos x="420" y="280"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
       <elementAttributes>
         <entry>
+          <string>Description</string>
+          <string>Zero bit from the ALU</string>
+        </entry>
+        <entry>
           <string>Label</string>
-          <string>Z_i</string>
+          <string>Z_alu</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="280"/>
+      <pos x="200" y="280"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
       <elementAttributes>
         <entry>
+          <string>Description</string>
+          <string>Carry bit from the ALU</string>
+        </entry>
+        <entry>
           <string>Label</string>
-          <string>C_i</string>
+          <string>C_alu</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="400"/>
+      <pos x="200" y="380"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
       <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>Zero output</string>
+        </entry>
         <entry>
           <string>Label</string>
           <string>Z_o</string>
         </entry>
       </elementAttributes>
-      <pos x="460" y="300"/>
+      <pos x="500" y="300"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
       <elementAttributes>
         <entry>
+          <string>Description</string>
+          <string>Carry output</string>
+        </entry>
+        <entry>
           <string>Label</string>
           <string>C_o</string>
         </entry>
       </elementAttributes>
-      <pos x="460" y="420"/>
+      <pos x="500" y="420"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
       <elementAttributes>
         <entry>
+          <string>Description</string>
+          <string>Write the Zero and Carry bit to registers.</string>
+        </entry>
+        <entry>
           <string>Label</string>
-          <string>en</string>
+          <string>ZC_w</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="320"/>
+      <pos x="200" y="320"/>
     </visualElement>
     <visualElement>
       <elementName>Clock</elementName>
@@ -81,61 +101,155 @@
           <string>CLK</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="360"/>
+      <pos x="200" y="240"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>NetName</string>
+          <string>CLK</string>
+        </entry>
+      </elementAttributes>
+      <pos x="220" y="240"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>NetName</string>
+          <string>CLK</string>
+        </entry>
+      </elementAttributes>
+      <pos x="400" y="300"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>NetName</string>
+          <string>CLK</string>
+        </entry>
+      </elementAttributes>
+      <pos x="400" y="420"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Multiplexer</elementName>
+      <elementAttributes/>
+      <pos x="220" y="380"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>Carry bit set by the CPU controller</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>C_ctrl</string>
+        </entry>
+      </elementAttributes>
+      <pos x="200" y="420"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>Source of the carry bit.
+0 = ALU
+1 = CPU controller</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>C_src</string>
+        </entry>
+      </elementAttributes>
+      <pos x="200" y="460"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Or</elementName>
+      <elementAttributes/>
+      <pos x="300" y="420"/>
     </visualElement>
   </visualElements>
   <wires>
     <wire>
-      <p1 x="300" y="320"/>
-      <p2 x="340" y="320"/>
+      <p1 x="200" y="320"/>
+      <p2 x="280" y="320"/>
     </wire>
     <wire>
-      <p1 x="340" y="320"/>
-      <p2 x="380" y="320"/>
+      <p1 x="280" y="320"/>
+      <p2 x="420" y="320"/>
     </wire>
     <wire>
-      <p1 x="300" y="400"/>
-      <p2 x="380" y="400"/>
+      <p1 x="200" y="240"/>
+      <p2 x="220" y="240"/>
     </wire>
     <wire>
-      <p1 x="440" y="420"/>
-      <p2 x="460" y="420"/>
+      <p1 x="260" y="400"/>
+      <p2 x="420" y="400"/>
     </wire>
     <wire>
-      <p1 x="360" y="420"/>
-      <p2 x="380" y="420"/>
+      <p1 x="480" y="420"/>
+      <p2 x="500" y="420"/>
     </wire>
     <wire>
-      <p1 x="300" y="280"/>
-      <p2 x="380" y="280"/>
+      <p1 x="400" y="420"/>
+      <p2 x="420" y="420"/>
     </wire>
     <wire>
-      <p1 x="300" y="360"/>
-      <p2 x="360" y="360"/>
+      <p1 x="200" y="420"/>
+      <p2 x="220" y="420"/>
     </wire>
     <wire>
-      <p1 x="340" y="440"/>
-      <p2 x="380" y="440"/>
+      <p1 x="280" y="420"/>
+      <p2 x="300" y="420"/>
     </wire>
     <wire>
-      <p1 x="440" y="300"/>
-      <p2 x="460" y="300"/>
+      <p1 x="200" y="280"/>
+      <p2 x="420" y="280"/>
     </wire>
     <wire>
-      <p1 x="360" y="300"/>
-      <p2 x="380" y="300"/>
+      <p1 x="360" y="440"/>
+      <p2 x="420" y="440"/>
     </wire>
     <wire>
-      <p1 x="340" y="320"/>
-      <p2 x="340" y="440"/>
+      <p1 x="480" y="300"/>
+      <p2 x="500" y="300"/>
     </wire>
     <wire>
-      <p1 x="360" y="300"/>
-      <p2 x="360" y="360"/>
+      <p1 x="400" y="300"/>
+      <p2 x="420" y="300"/>
     </wire>
     <wire>
-      <p1 x="360" y="360"/>
-      <p2 x="360" y="420"/>
+      <p1 x="200" y="380"/>
+      <p2 x="220" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="200" y="460"/>
+      <p2 x="240" y="460"/>
+    </wire>
+    <wire>
+      <p1 x="240" y="460"/>
+      <p2 x="300" y="460"/>
+    </wire>
+    <wire>
+      <p1 x="240" y="420"/>
+      <p2 x="240" y="460"/>
+    </wire>
+    <wire>
+      <p1 x="280" y="320"/>
+      <p2 x="280" y="420"/>
     </wire>
   </wires>
   <measurementOrdering/>
