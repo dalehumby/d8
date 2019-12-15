@@ -6,6 +6,7 @@
 
 Start:
     ; Define the end condition
+	LDI		PAGE, 1 ; change to page 1
     LDI     D, &fib+LENGTH      
 
     ; Initialise the Fibonacci sequence

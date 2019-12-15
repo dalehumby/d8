@@ -18,12 +18,12 @@ Adding all this took a lot of time, but by yesterday night I got the CPU running
 This morning I added in a D-type flip-flop to start the run sequence at the right time. There is a subtle interplay between the CPU controller and the program counter, and the various not gates, which causes the CPU to start running out of sequence. I have to only switch to *run* mode while the clock is low (or at least during the falling edge of the clock) which is why I used a D-type flip-flop, and an inverted clock input. Seems to be working reliably now :-)
 
 ### Todo:
-- add paging to the emulator
-- output the RAM hex file from my assembler, so I don't have to do it manually
-- finish adding in BCC, BCS
-- try some other programs (like multiply)
-- try link Digital to my emulator using its TCP/IP protocol
-- add a peripheral? screen or keyboard?
+- [ ] add paging to the emulator
+- [x] output the RAM hex file from my assembler, so I don't have to do it manually
+- [ ] finish adding in BCC, BCS
+- [ ] try some other programs (like multiply)
+- [ ] try link Digital to my emulator using its TCP/IP protocol
+- [ ] add a peripheral? screen or keyboard?
 
 
 ## Sat, 14 Dec: Design changes

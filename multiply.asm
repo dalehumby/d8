@@ -3,34 +3,31 @@
 .reset Start
 
 Start:
-    LDI     A, 16
-    LDI     B, 16
+    LDI     A, 17
+    LDI     B, 14
     BSR     Multiply_Sub
     STOP
 
 Multiply_Sub:
-    ; C:D = A * B (Use X as working memory)
+    ; C:D = A * B
     LDI     C, 0
     LDI     D, 0
+    LDI     X, 0
 
 NextBit:
-    CMP     B, C        ; B == 0?
+    CMP     B, X        ; B == 0?
     BEQ     Done        ; If no more bits to multiply by then we're done
 
-    RORC    X, B
-    MOV     B, X
+    RORC    B, B
     BCC     RotateA
 
-    ADD     X, A, D
-    MOV     D, X
+    ADD     D, A, D
     BCC     RotateA     ; If there was a carry in the addition then inc high byte
-    INC     X, C
-    MOV     C, X
+    INC     C, C		; bug here that needs fixing
 
 RotateA:
-    ROLC    X, A        ; Always rotate A
+    ROLC    A, A        ; Always rotate A
     BEQ     Done
-    MOV     A, X
     BRA     NextBit
 Done:
     RTS

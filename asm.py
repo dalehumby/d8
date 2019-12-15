@@ -173,7 +173,7 @@ if __name__ == "__main__":
                     symbols[smbl] = address
                     memory[address] = {'type': 'symbol', 'symbol': smbl, 'line_number': line_number}
                     byte_count = resolve_symbol(groups[1])
-                    out = f'{format(address, "04x")} | {smbl}[{byte_count}]\t\t\t| {line_number}'
+                    out = f'{address:04X} | {smbl}[{byte_count}]\t\t\t| {line_number}'
                     outlines.append(out)
                     print(out)
                     address += byte_count
@@ -190,7 +190,7 @@ if __name__ == "__main__":
                     raise Exception(f'Symbol "{smbl}" already defined')
                 symbols[smbl] = address
                 memory[address] = {'type': 'symbol', 'symbol': smbl, 'line_number': line_number}
-                out = f'{format(address, "04x")} | {smbl}\t\t\t| {line_number}'
+                out = f'{address:04x} | {smbl}\t\t\t| {line_number}'
                 outlines.append(out)
                 print(out)
             else:
@@ -210,11 +210,11 @@ if __name__ == "__main__":
             opcode = line['op']
             operands = line['opr']
             m = machine(opcode, operands)
-            out = f'{format(address, "04x")} | {machine2string(m)}\t| {line_number} | {opcode} {operands}'
+            out = f'{address:04X} | {machine2string(m)}\t| {line_number} | {opcode} {operands}'
             outlines.append(out)
             print(out)
         else:
-            out = f'{format(address, "04x")} | {line["symbol"]}\t\t\t| {line_number}'
+            out = f'{address:04X} | {line["symbol"]}\t\t\t| {line_number}'
             outlines.append(out)
             print(out)
 
@@ -223,3 +223,15 @@ if __name__ == "__main__":
     outfile = filename.rsplit('.')[0] + '.d8'
     with open(outfile, 'w') as f:
         f.writelines(map(lambda s: s + '\n', outlines))
+
+    # Output the .hex file to be loaded in to RAM of Digital
+    hex = [0] * (max(memory) + 2)
+    for address, line in memory.items():
+        if line['type'] == 'instruction':
+            m = machine(line['op'], line['opr'])
+            hex[address] = m >> 8
+            hex[address + 1] = m & 0xFF
+    outfile = filename.rsplit('.')[0] + '.hex'
+    with open(outfile, 'w') as f:
+        f.write('v2.0 raw\n')
+        f.writelines(map(lambda s: f'{s:02X}\n', hex))
