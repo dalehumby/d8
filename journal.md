@@ -1,5 +1,36 @@
 # Journal / notes of what I have done
 
+## Sun, 15 Dec: Addressing mode fix
+Yesterday came across a bug in my initial design, where I was using Direct addressing mode and didn't think deeply enough that there are actually two types of direct addressing: 8-bit and 11-bit.
+
+The 8-bit addressing mode uses lower 8-bits of instruction register as the reference in RAM (low 8 bits of address) for where to load/store data. This is required even if not using the PAGE register for the upper 8-bits of address bus. 
+
+There is also an 11-bit direct addressing mode which is used for branching.
+
+This _could_ be combined, and use page register for branching, but I think this makes the assembler too comples. E.g. if you branch over a page boundary then ... what? Do you change the page? Insert the assembler instruction in to the code to change pages? But then the programmer would never know about the page change and assume that the old page is being use... Terrible idea.
+
+What I _should_ be doing is use offset branching. i.e. those 8 bits (or 11-bits) is a signed number and added to the current program counter (PC) to calculate the new location. I haven't implemented that yet because
+- I just want to get the basic CPU working, and dont want more complex instruction decoding yet
+- If I'm going to that trouble, then I would like to add a stack pointer instead of the hacky shaddow program counter
+
+Adding all this took a lot of time, but by yesterday night I got the CPU running through the Fibonacci program to the end, correctly. 
+
+This morning I added in a D-type flip-flop to start the run sequence at the right time. There is a subtle interplay between the CPU controller and the program counter, and the various not gates, which causes the CPU to start running out of sequence. I have to only switch to *run* mode while the clock is low (or at least during the falling edge of the clock) which is why I used a D-type flip-flop, and an inverted clock input. Seems to be working reliably now :-)
+
+### Todo:
+- add paging to the emulator
+- output the RAM hex file from my assembler, so I don't have to do it manually
+- finish adding in BCC, BCS
+- try some other programs (like multiply)
+- try link Digital to my emulator using its TCP/IP protocol
+- add a peripheral? screen or keyboard?
+
+
+## Sat, 14 Dec: Design changes
+Despite the circuit having a paging register, I think I am getting ahead of myself. So:
+1. Going to keep an 11-bit direct addressing mode, and therefore not use the page register for branches. This means that all code (for now) must be in the first 2048 bytes of memory.
+2. I _will_ use the page register for indirect addressing mode, so in effect
+
 ## Wed 11 Dec: Design of circuits
 The last few days been working on the CPU simulator using 'Digital', and digital circuit simulator written by a prof. to teach design to his students. Pretty cool, and not too buggy. Also seems that it presents a TCP port that you can connect an emulator/IDE to and step through your circuit and code at the same time.
 
