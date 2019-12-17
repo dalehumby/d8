@@ -292,12 +292,16 @@ class Emulator:
             self.status['carry'] = not self.status['carry']  # for a dec, the carry logic is inverted, so carry means borrow here
         elif opcode == 'and':
             data = self.registers[Rs1] & self.registers[Rs2]
+            self.status['carry'] = 0
         elif opcode == 'or':
             data = self.registers[Rs1] | self.registers[Rs2]
+            self.status['carry'] = 0
         elif opcode == 'xor':
             data = self.registers[Rs1] ^ self.registers[Rs2]
+            self.status['carry'] = 0
         elif opcode == 'not':
             data = ~self.registers[Rs1]
+            self.status['carry'] = 0
         elif opcode == 'rolc':
             # Rotate left through carry
             data = (self.registers[Rs1] << 1) + self.status['carry']
