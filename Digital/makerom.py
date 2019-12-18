@@ -9,25 +9,26 @@ To calculate the bits
 """
 
 if __name__ == "__main__":
-    rom = { address: 0 for address in range(512) }
+    rom = { address: 0 for address in range(1024) }
 
     # Open csv file, read contents
     with open('micro.csv', 'r') as csv:
         lines = csv.readlines()
 
-    for line in lines[2:]:
-        line = line[:-1].split(',')
+    for line in lines[4:]:
+        line = line.split(',')
+        print(line)
         opcode = line[1]
         z = line[3]
         c = line[4]
         cycle = line[5]
-        output = line[7:-1]
-        assert len(output) == 20, len(output)
+        output = line[7:-4]
+        assert len(output) == 23, len(output)
 
         output = [ x if x else '0' for x in output ]
         output = int(''.join(output), 2)
 
-        print(f'opc={opcode}, z={z}, c={c}, cy={cycle}, out={output:020b} {output:05X}')
+        print(f'opc={opcode}, z={z}, c={c}, cy={cycle}, out={output:023b} {output:06X}')
 
         if opcode == 'X':
             opcode = list(range(32))
@@ -45,7 +46,7 @@ if __name__ == "__main__":
             c = [int(c)]
 
         if cycle == 'X':
-            cycle = list(range(4))
+            cycle = list(range(8))
         else:
             cycle = [int(cycle)]
 
@@ -53,10 +54,10 @@ if __name__ == "__main__":
             for z_ in z:
                 for c_ in c:
                     for cyc in cycle:
-                        address = op << 4 | z_ << 3 | c_ << 2 | cyc
+                        address = op << 5 | z_ << 4 | c_ << 3 | cyc
                         rom[address] = output
-                        print(f'{address:09b} {output:020b}')
+                        print(f'{address:010b} {output:023b}')
 
     with open('control.hex', 'w') as f:
         f.write('v2.0 raw\n')
-        f.writelines(map(lambda s: f'{s:05X}\n', rom.values()))
+        f.writelines(map(lambda s: f'{s:06X}\n', rom.values()))
