@@ -45,8 +45,12 @@
       <elementName>In</elementName>
       <elementAttributes>
         <entry>
+          <string>Description</string>
+          <string>11-bit operrand from instruction decoder</string>
+        </entry>
+        <entry>
           <string>Label</string>
-          <string>abs11</string>
+          <string>opr11</string>
         </entry>
         <entry>
           <string>Bits</string>
@@ -245,8 +249,12 @@
       <elementName>In</elementName>
       <elementAttributes>
         <entry>
+          <string>Description</string>
+          <string>8-bit operrand from instruction decoder</string>
+        </entry>
+        <entry>
           <string>Label</string>
-          <string>abs8</string>
+          <string>opr8</string>
         </entry>
         <entry>
           <string>Bits</string>
@@ -491,48 +499,15 @@
         </entry>
         <entry>
           <string>NetName</string>
-          <string>IND</string>
-        </entry>
-      </elementAttributes>
-      <pos x="660" y="460"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Tunnel</elementName>
-      <elementAttributes>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="2"/>
-        </entry>
-        <entry>
-          <string>NetName</string>
-          <string>SP</string>
-        </entry>
-      </elementAttributes>
-      <pos x="660" y="520"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Tunnel</elementName>
-      <elementAttributes>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="2"/>
-        </entry>
-        <entry>
-          <string>NetName</string>
           <string>REL</string>
         </entry>
       </elementAttributes>
-      <pos x="660" y="480"/>
+      <pos x="740" y="460"/>
     </visualElement>
     <visualElement>
       <elementName>Or</elementName>
       <elementAttributes/>
       <pos x="760" y="460"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Or</elementName>
-      <elementAttributes/>
-      <pos x="680" y="480"/>
     </visualElement>
     <visualElement>
       <elementName>Splitter</elementName>
@@ -600,16 +575,16 @@
       <elementName>In</elementName>
       <elementAttributes>
         <entry>
+          <string>Description</string>
+          <string>Stack pointer page select</string>
+        </entry>
+        <entry>
           <string>Label</string>
           <string>SPPS</string>
         </entry>
         <entry>
           <string>Bits</string>
           <int>8</int>
-        </entry>
-        <entry>
-          <string>Description</string>
-          <string>Stack pointer page select</string>
         </entry>
       </elementAttributes>
       <pos x="280" y="120"/>
@@ -653,10 +628,6 @@
       <p2 x="500" y="520"/>
     </wire>
     <wire>
-      <p1 x="660" y="520"/>
-      <p2 x="680" y="520"/>
-    </wire>
-    <wire>
       <p1 x="320" y="200"/>
       <p2 x="340" y="200"/>
     </wire>
@@ -669,7 +640,7 @@
       <p2 x="580" y="140"/>
     </wire>
     <wire>
-      <p1 x="660" y="460"/>
+      <p1 x="740" y="460"/>
       <p2 x="760" y="460"/>
     </wire>
     <wire>
@@ -715,10 +686,6 @@
     <wire>
       <p1 x="280" y="220"/>
       <p2 x="340" y="220"/>
-    </wire>
-    <wire>
-      <p1 x="660" y="480"/>
-      <p2 x="680" y="480"/>
     </wire>
     <wire>
       <p1 x="480" y="480"/>
@@ -793,7 +760,7 @@
       <p2 x="580" y="500"/>
     </wire>
     <wire>
-      <p1 x="740" y="500"/>
+      <p1 x="580" y="500"/>
       <p2 x="760" y="500"/>
     </wire>
     <wire>
