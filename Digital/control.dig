@@ -292,40 +292,14 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>IMM_sel</string>
+          <string>A_mode</string>
         </entry>
-      </elementAttributes>
-      <pos x="720" y="340"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Out</elementName>
-      <elementAttributes>
         <entry>
-          <string>Label</string>
-          <string>DIR8_sel</string>
+          <string>Bits</string>
+          <int>3</int>
         </entry>
       </elementAttributes>
-      <pos x="880" y="360"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Out</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Label</string>
-          <string>DIR11_sel</string>
-        </entry>
-      </elementAttributes>
-      <pos x="720" y="380"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Out</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Label</string>
-          <string>IND_sel</string>
-        </entry>
-      </elementAttributes>
-      <pos x="880" y="400"/>
+      <pos x="780" y="340"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -361,21 +335,16 @@
       <elementName>Out</elementName>
       <elementAttributes>
         <entry>
+          <string>Description</string>
+          <string>Increment or decrement the stack pointer if this is high 
+on the next clock rising edge</string>
+        </entry>
+        <entry>
           <string>Label</string>
-          <string>SPC_r</string>
+          <string>SP_cnt</string>
         </entry>
       </elementAttributes>
       <pos x="880" y="480"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Out</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Label</string>
-          <string>SPC_w</string>
-        </entry>
-      </elementAttributes>
-      <pos x="720" y="500"/>
     </visualElement>
     <visualElement>
       <elementName>Driver</elementName>
@@ -410,11 +379,17 @@
       <elementName>Out</elementName>
       <elementAttributes>
         <entry>
+          <string>Description</string>
+          <string>Direction that stack pointer moves when SP_cnt is high
+1 = push on to stack
+0 = pull from stack</string>
+        </entry>
+        <entry>
           <string>Label</string>
-          <string>ALU_r</string>
+          <string>SP_push</string>
         </entry>
       </elementAttributes>
-      <pos x="880" y="520"/>
+      <pos x="720" y="500"/>
     </visualElement>
     <visualElement>
       <elementName>Not</elementName>
@@ -431,28 +406,52 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>C_ctrl</string>
-        </entry>
-        <entry>
-          <string>Description</string>
-          <string>Force the Carry bit to this state</string>
+          <string>ALU_r</string>
         </entry>
       </elementAttributes>
-      <pos x="720" y="540"/>
+      <pos x="880" y="520"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
       <elementAttributes>
         <entry>
-          <string>Label</string>
-          <string>C_src</string>
+          <string>Description</string>
+          <string>Force the Carry bit to this state</string>
         </entry>
+        <entry>
+          <string>Label</string>
+          <string>C_ctrl</string>
+        </entry>
+      </elementAttributes>
+      <pos x="720" y="540"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Splitter</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Input Splitting</string>
+          <string>2-2,1-1,0-0</string>
+        </entry>
+        <entry>
+          <string>Output Splitting</string>
+          <string>3</string>
+        </entry>
+      </elementAttributes>
+      <pos x="720" y="340"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
         <entry>
           <string>Description</string>
           <string>The source that the Status register must use 
 for the Carry bit.
 0 = ALU
 1 = Controller</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>C_src</string>
         </entry>
       </elementAttributes>
       <pos x="880" y="560"/>
@@ -516,12 +515,12 @@ for the Carry bit.
       <p2 x="240" y="200"/>
     </wire>
     <wire>
-      <p1 x="680" y="360"/>
-      <p2 x="880" y="360"/>
-    </wire>
-    <wire>
       <p1 x="680" y="520"/>
       <p2 x="880" y="520"/>
+    </wire>
+    <wire>
+      <p1 x="680" y="360"/>
+      <p2 x="720" y="360"/>
     </wire>
     <wire>
       <p1 x="680" y="300"/>
@@ -556,16 +555,8 @@ for the Carry bit.
       <p2 x="880" y="240"/>
     </wire>
     <wire>
-      <p1 x="680" y="400"/>
-      <p2 x="880" y="400"/>
-    </wire>
-    <wire>
       <p1 x="680" y="560"/>
       <p2 x="880" y="560"/>
-    </wire>
-    <wire>
-      <p1 x="680" y="340"/>
-      <p2 x="720" y="340"/>
     </wire>
     <wire>
       <p1 x="360" y="180"/>
@@ -590,6 +581,14 @@ for the Carry bit.
     <wire>
       <p1 x="680" y="500"/>
       <p2 x="720" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="680" y="340"/>
+      <p2 x="720" y="340"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="340"/>
+      <p2 x="780" y="340"/>
     </wire>
     <wire>
       <p1 x="680" y="280"/>
@@ -624,12 +623,12 @@ for the Carry bit.
       <p2 x="400" y="220"/>
     </wire>
     <wire>
-      <p1 x="680" y="380"/>
-      <p2 x="720" y="380"/>
-    </wire>
-    <wire>
       <p1 x="680" y="540"/>
       <p2 x="720" y="540"/>
+    </wire>
+    <wire>
+      <p1 x="680" y="380"/>
+      <p2 x="720" y="380"/>
     </wire>
     <wire>
       <p1 x="240" y="200"/>

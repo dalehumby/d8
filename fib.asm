@@ -2,6 +2,10 @@
 
 .define LENGTH  10
 
+	LDI     A, 0
+	LDI     B, 2
+	OR      A, A, B
+
 Start:
     LDI     PAGE, 1             ; change to page 1
     LDI     D, &fib+LENGTH      ; Define the end condition

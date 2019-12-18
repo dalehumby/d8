@@ -27,10 +27,14 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>PC_inc</string>
+          <string>A_in</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
         </entry>
       </elementAttributes>
-      <pos x="180" y="100"/>
+      <pos x="80" y="180"/>
     </visualElement>
     <visualElement>
       <elementName>CounterPreset</elementName>
@@ -45,6 +49,16 @@
         </entry>
       </elementAttributes>
       <pos x="220" y="120"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>PC_inc</string>
+        </entry>
+      </elementAttributes>
+      <pos x="180" y="100"/>
     </visualElement>
     <visualElement>
       <elementName>Clock</elementName>
@@ -69,16 +83,6 @@
         </entry>
       </elementAttributes>
       <pos x="380" y="160"/>
-    </visualElement>
-    <visualElement>
-      <elementName>In</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Label</string>
-          <string>PC_w</string>
-        </entry>
-      </elementAttributes>
-      <pos x="80" y="220"/>
     </visualElement>
     <visualElement>
       <elementName>Const</elementName>
@@ -109,14 +113,10 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>A_in</string>
-        </entry>
-        <entry>
-          <string>Bits</string>
-          <int>16</int>
+          <string>PC_w</string>
         </entry>
       </elementAttributes>
-      <pos x="80" y="180"/>
+      <pos x="80" y="220"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>

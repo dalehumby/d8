@@ -1,5 +1,18 @@
 # Journal / notes of what I have done
 
+## Tue, 17 Dec: Expanding addressing modes
+Now that I have the basic CPU working.... I'm going to take the leap and add in more addressing modes, specifically 
+- add the stack pointer, including referencing data offset from the stack pointer; 
+- push and pull
+- use stack for storing return PC during calls to subroutines
+- perhaps (future) use stack for storing CPU state during interrupts
+- add relative addressing so all branches are relative to the PC
+- add offset to index, so can reference variables ahead or behind the current index (X) register
+
+I've formalised much of my thinking in my spreadsheet that I've been using for recording the microcode
+https://docs.google.com/spreadsheets/d/1R_vZknDr0SD-eCZZS5yPU8j0XcCEtsu2B878DS3oAyU/edit#gid=2004623121
+
+
 ## Sun, 15 Dec: Addressing mode fix
 Yesterday came across a bug in my initial design, where I was using Direct addressing mode and didn't think deeply enough that there are actually two types of direct addressing: 8-bit and 11-bit.
 
