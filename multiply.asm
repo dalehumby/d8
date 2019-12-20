@@ -37,9 +37,9 @@ MultiplySP_Sub:
     STSP    A, 3       ; Clear high byte in RAM
     STSP    A, 4       ; Clear low byte in RAM
 
+    LDI     E, 0
 NextBitSP:
-    LDI     D, 0
-    CMP     C, D        ; C == 0?
+    CMP     C, E        ; C == 0?
     BEQ     DoneSP      ; If no more bits to multiply by then we're done
 
     RORC    C, C        ; Do we need to do an add?
@@ -69,9 +69,9 @@ MultiplyPtr_Sub:
     STX     A, 0       ; Clear high byte in RAM
     STX     A, 1       ; Clear low byte in RAM
 
+    LDI     E, 0
 NextBit:
-    LDI     D, 0
-    CMP     C, D        ; C == 0?
+    CMP     C, E        ; C == 0?
     BEQ     Done        ; If no more bits to multiply by then we're done
 
     RORC    C, C        ; Do we need to do an add?
