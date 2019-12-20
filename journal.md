@@ -1,5 +1,80 @@
 # Journal / notes of what I have done
 
+## Fri, 20 Dec: Completed rafactor
+Yesterday updated my assembler to understand the new offset addressing (yay no off-by-one errors), and how to code for stack pointer and indirect addressing. This took some time, and there were some subtle bugs but got it right.
+
+The biggest pain is the programmer (me) having to understand the detailed addressing mode and which opcode to use to get what I want. Typing in `LDX    A, 0` which means load a valued found at X+0 in to A, is not so nice. And gets confusing when with `STSP    A, 3`.
+
+I'd rather use one mneumonic for load and store, and let the assembler decide which underlying opcode to use. Maybe 
+
+```
+    LD    A, X      ; Load memory at X in to A
+    LD    A, X+3    ; Load memory at X+3 in to A
+    ST    SP+5, A   ; Store A to the location SP+5
+```
+
+- Where the offsets are optional (dont have to write `+0`, just leave it out.) 
+- Destination is always on the left, source on right. 
+- Symbol resolves correctly, so could use `SP+LENGTH`.
+
+
+Anyway, got the assembler working, and then updated the emulator and gui. Once that was done I rewrote the multiply promgram to use two methods for passing the multiplier and multiplicand: 
+- pass pointer (X) and reference using X+0 and X+1 for the high and low byte respectivley. The actual value of X is never changed.
+- push the two numbers on to the stack then call the multiply subroutine, which references them using SP+3 and SP+4 (the return address is at SP+1 and SP+2.)
+
+Both of these methods worked as well as I had hoped, and simplified the code quite a bit. (Except for all the different types of loads and stores.)
+
+I'm not sure I like either one better, but I am proud of the Stack Pointer version because it uses the stack! And now I have the concept of local variables, which will be nice for the C compiler. (And X for pointers.)
+
+I lay in bed thinking about how I would resolve a function pointer, but dont know yet. (i.e. storing a branch address in RAM instead of an opcode.) Hacky way would be to push the bytes to stack and then `RTS` but that feels like cheating...
+
+
+I ran the multiply code on the emulator and Digital circuit and both worked correctly! Made great progress and feeling very excited about the direction of the project.
+
+I was plesantly surprised with how well using `.origin` and `.data` worked for assigning where in RAM I want the code and data. I even put data in amongst the code, instead of at the top of RAM before the code as I usually do.
+
+Next: Thinking about preipherals, and how I might do interrupts.
+
+I still have available
+- 2 opcodes
+- 1 addressing mode
+
+If I needed another opcode I could change `STOP` to only stop when the IR is 0x0000 (or even 0xFFFF), and reuse the opcode for anything else that wouldn't trigger stop accidentally. Maybe any of the inherent mode operations are candidates for this reuse.
+
+Because I removed SPCH (shadow program counter high), and moved the SPH (stack pointer high) to RAM, I freed up one of my 8 registers, and added in another general purpose register, E. Not sure I need 5 general purpose registers, especially since I've simplified most of the code by using offset addressing in X and SP, but hey, let's see.
+
+I find myself doing `LDI    A, 0` a fair amount, might implement a `CLR    A` pseudo instruction that is a shortcut. Also there are a number of times where I'm comparing to 0. I see why some CPU's have R0 always set to 0. Perhaps a `CMP    A, 0` instruction wouldn't be too bad, but will think how I might do that. At the moment all my operations are to and from registers. And you can only get values via instructions in to registers. This kind of goes against that philosophy, and would undoubtedly make the CPU more complex.
+
+If I used bit 3 of ALU instructions to tell the CPU that the value in R2 is not a register, but a 3 bit (signed) number, then I could INC (+1), DEC (-1) and CMP (0) easily, and the 3 bit number could code for anything in range -4 to +3. Not a lot, but means I can remove the INC, DEC opcodes, and increment and decrement by numbers other than 1. The ALU probably wouldnt be any more complex considering the current INC/DEC circuits where ALU1 input is switched out for 0x01 and 0xFF respectivley.
+
+
+## Wed, 18 Dec: Major refactor to add addressing modes
+Addressing modes now supprted:
+- Inherent: No address in the instruction, the opcode iteself codes how data is moved around
+- Immediate: 8 bit unsigned data stored in the lower byte of the instruction, data moved in to a register
+- Direct: 8 bit unsigned integer is the lower byte of the address, combined with the page register to get the address to read/write from
+- Indirect: Page:X register gives base address, added to the 8-bit _signed_ integer in the lower byte of the opcode to give an address to read/write from
+- Relative: 11 bit signed integer (2's complement) added to the current program counter to give an address to branch to
+- Stack pointer: stack pointer page select(high byte), stack pointer (low byte) + 8 bit offset in opcode to give address relative to stack pointer. Also use stack for push/pull bytes, and for storing return address for subroutines.
+
+Phew... this took a number of days to get right, but the process I used was
+- decide on the addressing modes I would like, and how they would be encoded in the 16-bit instructions. Drwe up a diagram of how busses would like to an 'addressing' decoder and it's 16-bit addres. I also added the instructions to my spreadsheet and how they would be encoded, and keeping notes on which instruction used what addressing mode. 
+- Once I had a handle on the design I made a circuit design in Digital to test the ideas, and make sure it would work. I also added the stack pointer counter in to this citcuit to test how pushing and pulling would work.
+- I then took the POC circuit and created a new module in my CPU for addressing, and spent a long time updating the rest of the CPU to work with the stack pointer (instead of the shaddow counter)
+- I came to the realisation that I didnt need a 16-bit stack pointer. When I was doing a lot of embedded work the stack didnt even need to be 255 bytes. So I decided to move the high byte of the stack pointer out of the registers and in to a memory mapped register. (This could be set by dipswitches.) But because I'm trying to design a general purpose CPU (lol) I went for memory mapping the high byte. This can be set at runtime, and then the stack pointer is just the low byte. And that gives 256 bytes of stack space, surely more than enough.
+- Because Branch Soubroutine (BSR) needs to push the high byte and low byte _and_ branch, I need 3 cycles + 2 for loading the instruction = 5 cycles... which means I now need 3 bits for the cycle counter instead of 2, making the inputs to the CPU controller 10 bits, or 1 kB instead of 512 bytes... annoyingly large.
+- (If I want to add an interrupt I probably need another bit, needing 2 kB of instruction codes, yuk!)
+- I then updated the CPU controller to input the new 3 bit cycle counter instead of 2 bits; and decided that the controller just outputs the addressing mode ID (3 bits = 8 options), and that saved 1 bit in the output. These modes bits are sent to the address controller which latches the correct values on to the address (or data) bus after doing the sign extension (8- and 11-bit to 16-bit), as offsets to the PC, SP or X registers.
+- I also had to add circuits to handle incrementing and decrementing the stack pointer
+- And added some nasty circuits to read the high and low byte of the program counter (PC) using the data bus instead of the address bus, so that I could push and pull the bytes during subroutine branches and returns. This is not ideal, but about as simple as I could think. But added another 3 control bits to the control outputs. 
+- Control is now we at 10 bits input and 23 bits output.
+
+After all this the circuit worked! With minimal isses and some minor tweaks to the control ROM. (That makerom.py program has been invaluable.)
+
+I tested push and pull; and branch to subroutine and return from subroutine. It was a bit too complex to test much more than that manually conding instructions, so held off until I updated my assembler.
+
+Overall very pleased with how it came out, and how nice this CPU is turning out.
+
 ## Tue, 17 Dec: Expanding addressing modes
 Now that I have the basic CPU working.... I'm going to take the leap and add in more addressing modes, specifically 
 - add the stack pointer, including referencing data offset from the stack pointer; 
