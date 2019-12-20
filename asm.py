@@ -20,19 +20,20 @@ register = {
         'b': 1,
         'c': 2,
         'd': 3,
-        'page': 4,
-        'x': 5,
-        'spch': 6,
-        'spcl': 7
+        'e': 4,
+        'page': 5,
+        'x': 6,
+        'sp': 7
         }
 
 instruction = {
         'stop': 0,
-        'ldi': 1, 'ldd': 2, 'ldx': 3, 'std': 4, 'stx': 5,
-        'mov':  6,
-        'bra': 7, 'bcs': 8, 'bcc': 9, 'beq': 10, 'bne': 11, 'bsr': 12, 'rts': 13,
+        'ldi': 1, 'ldd': 2, 'ldx': 3, 'ldsp': 4, 'std': 5, 'stx': 6, 'stsp': 7,
+        'mov':  8,
+        'bra': 9, 'bcs': 10, 'bcc': 11, 'beq': 12, 'bne': 13, 'bsr': 14, 'rts': 15,
         'add': 16, 'adc': 17, 'inc': 18, 'dec': 19, 'and': 20, 'or': 21, 'xor': 22, 'not': 23, 'rolc': 24, 'rorc': 25,
-        'clc': 26, 'sec': 27
+        'clc': 26, 'sec': 27,
+        'psh': 28, 'pul': 29
         }
 
 
@@ -50,36 +51,50 @@ def parse(tokens):
     return opcode, operands
 
 
-def machine(opcode, operands):
-    """Create the machine code from the opcode and operands."""
-    if opcode in ['stop', 'rts', 'clc', 'sec']:
+def machine(address, opcode, operands):
+    """
+    Create the machine code from the opcode and operands.
+    Some instructions require relative addresses: They need the address of the current command
+    """
+    PC = address + 2  # The program counter (PC) has already been incremented by the time the instuction is executed
+
+    if opcode in ['stop', 'clc', 'sec']:
         return op(opcode)
     elif opcode in ['ldi', 'ldd', 'std']:
-        return op_reg_abs8(opcode, operands[0], operands[1])
-    elif opcode in ['ldx', 'stx']:
-        return op_reg(opcode, operands[0])
+        return op_reg_opr8u(opcode, operands[0], operands[1])
+    elif opcode in ['ldx', 'ldsp', 'stx', 'stsp']:
+        return op_reg_opr8s(opcode, operands[0], operands[1])
     elif opcode == 'mov':
         return op_reg_reg(opcode, operands[0], operands[1])
     elif opcode in ['bra', 'bcs', 'bcc', 'beq', 'bne', 'bsr']:
-        return op_abs11(opcode, operands[0])
+        return op_opr11s(PC, opcode, operands[0])
     elif opcode in ['add', 'adc', 'and', 'or', 'xor']:
         return op_reg_reg_reg(opcode, operands[0], operands[1], operands[2])
     elif opcode in ['not', 'rolc', 'rorc', 'inc', 'dec']:
         return op_reg_reg(opcode, operands[0], operands[1])
+    elif opcode == 'rts':
+        # For RTS, the register is ignored, so set to a; and opr8 points to location SP+1 because the SP dec only happens after a pull
+        return op_reg_opr8s(opcode, 'a', 1)
+    elif opcode == 'psh':
+        # opr8 is 0 because no SP offset
+        return op_reg_opr8s(opcode, operands[0], 0)
+    elif opcode == 'pul':
+        # opr8 points to location SP+1 because the SP dec only happens after a pull
+        return op_reg_opr8s(opcode, operands[0], 1)
     elif opcode == 'cmp':
         # A compare is the same as an XOR, but in this case we discard the result
         return op_reg_reg_reg('xor', 'a', operands[0], operands[1], compare=True)
     else:
         raise Exception(f'Unrecognised opcode {opcode}')
 
+
 def op(opcode):
     return instruction[opcode] << 11
 
-def op_reg(opcode, R):
-    return instruction[opcode] << 11 | register[R] << 8
 
 def op_reg_reg(opcode, Rd, Rs):
     return instruction[opcode] << 11 | register[Rd] << 8 | register[Rs] << 4
+
 
 def op_reg_reg_reg(opcode, Rd, Rs1, Rs2, compare=False):
     m = instruction[opcode] << 11 | register[Rd] << 8 | register[Rs1] << 4 | register[Rs2]
@@ -103,17 +118,42 @@ def resolve_symbol(symbol):
                 raise Exception(f"Undefined symbol '{s}'")
     return address
 
-def op_reg_abs8(opcode, R, abs):
-    # NOTE: Use mod 256 so only the low byte of the address is stored in the opcode.
-    #       Programmer must use PAGE register to change high byte
-    abs = resolve_symbol(abs) % 256
-    return instruction[opcode] << 11 | register[R] << 8 | abs
 
-def op_abs11(opcode, abs):
-    abs = resolve_symbol(abs)
-    if abs > 2048:
-        raise Exception('Absolute value must be <= 2048')
-    return instruction[opcode] << 11 | abs
+def op_reg_opr8u(opcode, R, opr8u):
+    """
+    Resolve symbol or number to an 8-bit unsigned operand.
+    NOTE: Use mod 256 so only the low byte of the address is stored in the operand.
+          Programmer must use PAGE register to change high byte
+    """
+    opr8u = resolve_symbol(opr8u) % 256
+    return instruction[opcode] << 11 | register[R] << 8 | opr8u
+
+
+def op_reg_opr8s(opcode, R, offset):
+    """Resolve symbol or number to an 8-bit signed operand."""
+    offset = resolve_symbol(offset)
+    if offset < -128 or offset > 127:
+        raise Exception(f'Offset {offset} must be in range -128 to +127')
+    if offset < 0:
+        # Two's complement
+        opr8s = 2**8 + offset
+    else:
+        opr8s = offset
+    return instruction[opcode] << 11 | register[R] << 8 | opr8s
+
+
+def op_opr11s(PC, opcode, address):
+    """Given an opcode and absolute address, calculate the relative offset."""
+    address = resolve_symbol(address)
+    offset = address - PC
+    if offset < -1024 or offset > 1023:
+        raise Exception(f'Relative address {offset} must be in range -1024 to +1023')
+    if offset < 0:
+        # Two's complement
+        opr11s = 2**11 + offset
+    else:
+        opr11s = offset
+    return instruction[opcode] << 11 | opr11s
 
 
 def machine2string(m):
@@ -137,7 +177,7 @@ if __name__ == "__main__":
         lines = f.readlines()
         for line_number, line in enumerate(lines, start=1):
             line = line.split(';')[0]  # remove comments
-            line = line.strip().lower()  # remove leading and trailing whitespace, and lowercase
+            line = line.strip().lower()  # remove leading and trailing whitespace; and lowercase
             if not line:
                 # Empty line skipped
                 pass
@@ -207,7 +247,7 @@ if __name__ == "__main__":
         if line['type'] == 'instruction':
             opcode = line['op']
             operands = line['opr']
-            m = machine(opcode, operands)
+            m = machine(address, opcode, operands)
             out = f'{address:04X} | {machine2string(m)}\t| {line_number} | {opcode} {operands}'
             outlines.append(out)
             print(out)
@@ -226,7 +266,7 @@ if __name__ == "__main__":
     hex = [0] * (max(memory) + 2)
     for address, line in memory.items():
         if line['type'] == 'instruction':
-            m = machine(line['op'], line['opr'])
+            m = machine(address, line['op'], line['opr'])
             hex[address] = m >> 8
             hex[address + 1] = m & 0xFF
     outfile = filename.rsplit('.')[0] + '.hex'

@@ -1,37 +1,10 @@
 # D8 Emulator
 
 import re
-
-map_reg_num = {
-        'a': 0,
-        'b': 1,
-        'c': 2,
-        'd': 3,
-        'page': 4,
-        'x': 5,
-        'spch': 6,
-        'spcl': 7
-        }
+from asm import register as map_reg_num, instruction
 
 map_reg_num = { key.upper(): value for key, value in map_reg_num.items() }  # uppercase the keys
 map_num_reg = { value: key.upper() for key, value in map_reg_num.items() }  # invert the dictionary
-
-instruction = {
-        'stop': 0,
-        'ldi': 1, 'ldd': 2, 'ldx': 3, 'std': 4, 'stx': 5,
-        'mov':  6,
-        'bra': 7, 'bcs': 8, 'bcc': 9, 'beq': 10, 'bne': 11, 'bsr': 12, 'rts': 13,
-        'add': 16, 'adc': 17, 'inc': 18, 'dec': 19, 'and': 20, 'or': 21, 'xor': 22, 'not': 23, 'rolc': 24, 'rorc': 25,
-        'clc': 26, 'sec': 27,
-        'incx': 28
-        }
-
-# possibly add:
-# 14: ldsp, 15: stsp
-# 29: push, 30: pop, 31: sub
-# get rid of ADD if CLC first then can use ADC
-# could also get rid of inverse logic branches: BCC, BNE
-
 
 instruction_map = {value: key for key, value in instruction.items() }
 
@@ -184,16 +157,32 @@ class Emulator:
         Rs2 = operands & 0b00000111
         return Rd, Rs1, Rs2
 
-    def _get_reg_abs8(self, operands):
-        """Get 1 register and an 8-bit value."""
+    def _get_reg_opr8u(self, operands):
+        """Get 1 register and an 8-bit unsigned value."""
         Rd = operands >> 8
-        abs8 = operands & 0xFF
-        return Rd, abs8
+        opr8u = operands & 0xFF
+        return Rd, opr8u
 
-    def _get_abs11(self, operands):
+    def _get_reg_opr8s(self, operands):
+        """Get 1 register and an 8-bit signed value."""
+        Rd = operands >> 8
+        opr8s = operands & 0xFF
+        # Two's complement
+        if opr8s > 127:
+            offset = opr8s - 2**8
+        else:
+            offset = opr8s
+        return Rd, offset
+
+    def _get_opr11s(self, operands):
         """Get an 11-bit value."""
-        abs11 = operands
-        return abs11
+        opr11s = operands
+        # Two's complement
+        if opr11s > 1023:
+            offset = opr11s - 2**11
+        else:
+            offset = opr11s
+        return offset
 
     def _execute(self, opc, opr):
         """Execute the current opcode."""
@@ -202,31 +191,43 @@ class Emulator:
         if opc == 'stop':
             self.status['stop'] = True
         elif opc == 'ldi':
-           Rd, data = self._get_reg_abs8(opr)
+           Rd, data = self._get_reg_opr8u(opr)
            self.registers[Rd] = data
            #print(f'{map_num_reg[Rd]}<-{data}')
         elif opc == 'ldd':
-           Rd, lsb = self._get_reg_abs8(opr)
+           Rd, lsb = self._get_reg_opr8u(opr)
            address = self.registers[map_reg_num['PAGE']] << 8 | lsb
            data = self.memory[address]
            self.registers[Rd] = data
            #print(f'{map_num_reg[Rd]}<-{data}<-memory[{address}]')
         elif opc == 'ldx':
-            Rd = self._get_reg(opr)
-            address = self.registers[map_reg_num['PAGE']] << 8 | self.registers[map_reg_num['X']]
+            Rd, offset = self._get_reg_opr8s(opr)
+            address = self.registers[map_reg_num['PAGE']] << 8 | self.registers[map_reg_num['X']] + offset
+            data = self.memory[address]
+            self.registers[Rd] = data
+            #print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
+        elif opc == 'ldsp':
+            Rd, offset = self._get_reg_opr8s(opr)
+            address = self.registers[map_reg_num['SP']] + offset
             data = self.memory[address]
             self.registers[Rd] = data
             #print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
         elif opc == 'std':
-            Rs, lsb = self._get_reg_abs8(opr)
+            Rs, lsb = self._get_reg_opr8u(opr)
             address = self.registers[map_reg_num['PAGE']] << 8 | lsb
             data = self.registers[Rs]
             self.memory[address] = data
             #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
         elif opc == 'stx':
-            Rs = self._get_reg(opr)
+            Rs, offset = self._get_reg_opr8s(opr)
             data = self.registers[Rs]
-            address = self.registers[map_reg_num['PAGE']] << 8 | self.registers[map_reg_num['X']]
+            address = self.registers[map_reg_num['PAGE']] << 8 | self.registers[map_reg_num['X']] + offset
+            self.memory[address] = data
+            #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
+        elif opc == 'stsp':
+            Rs, offset = self._get_reg_opr8s(opr)
+            data = self.registers[Rs]
+            address = self.registers[map_reg_num['SP']] + offset
             self.memory[address] = data
             #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
         elif opc == 'mov':
@@ -235,34 +236,57 @@ class Emulator:
             self.registers[Rd] = data
             #print(f'{map_num_reg[Rd]}<-{data}<-{map_num_reg[Rs]}')
         elif opc == 'bra':
-            self.pc = self._get_abs11(opr)
+            self.pc = self.pc + self._get_opr11s(opr)
         elif opc == 'beq':
             if self.status['zero']:
-                self.pc = self._get_abs11(opr)
+                self.pc = self.pc + self._get_opr11s(opr)
         elif opc == 'bne':
             if not self.status['zero']:
-                self.pc = self._get_abs11(opr)
+                self.pc = self.pc + self._get_opr11s(opr)
         elif opc == 'bcs':
             if self.status['carry']:
-                self.pc = self._get_abs11(opr)
+                self.pc = self.pc + self._get_opr11s(opr)
         elif opc == 'bcc':
             if not self.status['carry']:
-                self.pc = self._get_abs11(opr)
+                self.pc = self.pc + self._get_opr11s(opr)
         elif opc == 'bsr':
-            # Save the program counter in the shaddow program counter (SPC) registers
-            # Each register is only 8 bits, so split the 16-bit PC in to a high and low byte
-            self.registers[map_reg_num['SPCH']] = self.pc >> 8
-            self.registers[map_reg_num['SPCL']] = self.pc & 0xFF
-            self.pc = self._get_abs11(opr)
+            data = self.pc & 0xFF  # Low byte first
+            address = self.registers[map_reg_num['SP']]
+            self.memory[address] = data
+            self.registers[map_reg_num['SP']] += -1  # Always post decrement
+            data = self.pc >> 8  # High byte
+            address = self.registers[map_reg_num['SP']]
+            self.memory[address] = data
+            self.registers[map_reg_num['SP']] += -1  # Always post decrement
+            self.pc = self.pc + self._get_opr11s(opr)  # Then branch
         elif opc == 'rts':
-            # To return from subroutine, copy the shaddow program counter in to the program counter
-            self.pc = self.registers[map_reg_num['SPCH']] << 8 | self.registers[map_reg_num['SPCL']]
-        elif opc in ['add', 'adc', 'inc', 'and', 'or', 'not', 'xor', 'rolc', 'rorc', 'dec']:
+            # Because of post increment, use the operand to store an offset of 1 so get the correct byte from stack
+            _, offset = self._get_reg_opr8s(opr)
+            address = self.registers[map_reg_num['SP']] + offset
+            SPH = self.memory[address]
+            self.registers[map_reg_num['SP']] += 1  # Always post increment
+            address = self.registers[map_reg_num['SP']] + offset
+            SPL = self.memory[address]
+            self.registers[map_reg_num['SP']] += 1  # Always post increment
+            self.pc = SPH << 8 | SPL
+        elif opc in ['add', 'adc', 'inc', 'dec', 'and', 'or', 'xor', 'not', 'rolc', 'rorc']:
             self._alu(opc, opr)
         elif opc in ['clc', 'sec']:
             self.status['carry'] = (opc == 'sec')
-        elif opc == 'incx':
-            self.registers[map_reg_num['X']] += 1
+        elif opc == 'psh':
+            Rs, offset = self._get_reg_opr8s(opr)
+            data = self.registers[Rs]
+            address = 0 << 8 | self.registers[map_reg_num['SP']] + offset
+            self.memory[address] = data
+            self.registers[map_reg_num['SP']] += -1  # Always post decrement
+            #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
+        elif opc == 'pul':
+            Rd, offset = self._get_reg_opr8s(opr)
+            address = 0 << 8 | self.registers[map_reg_num['SP']] + offset
+            data = self.memory[address]
+            self.registers[Rd] = data
+            self.registers[map_reg_num['SP']] += 1  # Always post increment
+            #print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
         else:
             #print(self.status)
             #print(self.registers)
