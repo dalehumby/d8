@@ -114,7 +114,7 @@ def draw_variables(win, cpu):
     y = 1
     for name, v in cpu.variables.items():
         values = [ cpu.memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
-        win.addstr(y, 0, f'{name}[{v["length"]}]: {values}')
+        win.addstr(y, 0, f'{name}[{v["address"]:04X}]: {values}')
         y += 1  # todo: can I do this in the iterator?
     if not cpu.variables:
         win.addstr(y, 0, '--')
