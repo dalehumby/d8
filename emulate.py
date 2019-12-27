@@ -1,6 +1,7 @@
 # D8 Emulator
 
 import re
+from textwrap import wrap
 from asm import register as map_reg_num, instruction
 
 map_reg_num = { key.upper(): value for key, value in map_reg_num.items() }  # uppercase the keys
@@ -98,26 +99,27 @@ class Emulator:
         else:
             line = line.split('|')
             address = int(line[0].strip(), 16)
-            value = line[1].strip(' \t')
+            value = line[1].strip()
             line_number = int(line[2].strip(), 10)
-            if '[' in value:
+            debug = line[3].strip()
+            if debug.startswith('var:'):
                 # Handle variables
                 memory = {}
-                result = re.search(r'(\w+)\[(\d+)\]', value)
+                result = re.search(r'var\:(\w+)\[(\d+)\]', debug)
                 name = result.groups()[0]
                 length = int(result.groups()[1], 10)
-                for adr in range(address, address+length):
-                    memory[adr] = 0
+                for adr, val in zip(range(address, address+length), wrap(value, 2)):
+                    memory[adr] = int(val, 16)
                 return memory, {address: line_number}, {name: {'length': length, 'address': address}}
-            elif value[0] in ['0', '1']:
-                # Handle machine instruction
-                value = value.replace(' ', '')  # remove whitespace
-                high_byte = int(value[0:8], 2)
-                low_byte = int(value[8:], 2)
-                return {address: high_byte, address+1: low_byte}, {address: line_number}, None
             else:
-                # Dont care
-                return None, None, None
+                if len(value) == 4:
+                    # Handle machine instruction
+                    high_byte = int(value[0:2], 16)
+                    low_byte = int(value[2:], 16)
+                    return {address: high_byte, address+1: low_byte}, {address: line_number}, None
+                else:
+                    raise Exception(f'Error parsing line {line_number}')
+
 
     def _fetch(self):
         """

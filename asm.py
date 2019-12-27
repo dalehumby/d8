@@ -2,10 +2,16 @@
 D8 Assembler
 Basic 2-pass assembler.
 
-Case insensitive
-Defines and then data then code
-Defines and Data only support back references
-Code supports forward and back references
+Notes:
+- Case insensitive
+
+Output format:
+.asm file
+Address (hex) | Contents of address (multiple bytes fine) (hex) | line number | debug info
+
+Debug info section is freeform text.
+Supports var:varname[byte length (base 10 integer)] to tell emulator that there is a variable at that location
+
 """
 
 import argparse
@@ -104,6 +110,7 @@ def op_reg_reg_reg(opcode, Rd, Rs1, Rs2, compare=False):
 
 
 def resolve_symbol(symbol):
+    """Recursivley resolve symbol references until end up with an address."""
     address = 0
     if type(symbol) == int:
         return symbol
@@ -169,68 +176,60 @@ if __name__ == "__main__":
     filename = args.filename
     outlines = []
 
+    # First pass of assembler: build the symbol table
     with open(filename, 'r') as f:
-        out = f'; Assembled {filename}'
-        outlines.append(out)
-        print(out)
+
 
         lines = f.readlines()
         for line_number, line in enumerate(lines, start=1):
             line = line.split(';')[0]  # remove comments
             line = line.strip().lower()  # remove leading and trailing whitespace; and lowercase
-            if not line:
-                # Empty line skipped
-                pass
-            elif line[0] == ';':
-                # Comments can be skipped
+            if not line or line[0] == ';':
+                # Empty line and comments can be skipped
                 pass
             elif line[0] == '.':
                 # Handle . command
                 define = re.search(r"\.define\s+(\w+)\s+(\w+)", line)
                 reset = re.search(r"\.reset\s+(\w+)", line)
                 origin = re.search(r"\.origin\s+(\w+)", line)
-                data = re.search(r"\.data\s+(\w+)\s+(\w+)(?:\s*\{(.*)\})?", line)
+                data = re.search(r"\.data\s+(\w+)\s+(\w+)(?:\s*\"(.*)\")?", line)
                 if define:
+                    # Define a constant: .define LENGTH 3
                     groups = define.groups()
                     symbols[groups[0]] = groups[1]
                 elif reset:
-                    # Create the reset command in first 2 bytes of RAM
+                    # Create the reset command in first 2 bytes of RAM: .reset Start
                     reset_address = reset.groups()[0]
                     address = 0
                     memory[address] = {'type': 'instruction', 'op': 'bra', 'opr': [reset_address], 'line_number': line_number}
                     address += 2
                 elif origin:
-                    # Change the address to the origin
+                    # Change the address to the origin: .origin 0x0100 or .origin Start
                     origin = origin.groups()[0]
                     address = resolve_symbol(origin)
                 elif data:
+                    # Variable definition: .data i 1 or .data name 10 "value"
                     groups = data.groups()
                     smbl = groups[0]
+                    byte_count = resolve_symbol(groups[1])
+                    values = groups[2]
+                    v = [ 0 ] * byte_count  # init all bytes to 0
+                    if values:
+                        values = [ ord(x) for x in values ]
+                        v[:len(values)] = values
                     if smbl in symbols:
                         raise Exception(f'Symbol "{smbl}" already defined')
                     symbols[smbl] = address
-                    memory[address] = {'type': 'symbol', 'symbol': smbl, 'line_number': line_number}
-                    byte_count = resolve_symbol(groups[1])
-                    out = f'{address:04X} | {smbl}[{byte_count}]\t\t\t| {line_number}'
-                    outlines.append(out)
-                    print(out)
+                    memory[address] = {'type': 'variable', 'symbol': smbl, 'value': v, 'line_number': line_number}
                     address += byte_count
-                    values = groups[2]
-                    if values:
-                        v = values.split(',')
-                        v = [int(y) for y in v]
                 else:
                     raise Exception(f'Cannot parse line {line}')
             elif line[-1] == ':':
-                # Handle location symbol
+                # Add location to the symbol table
                 smbl = line[:-1]
                 if smbl in symbols:
                     raise Exception(f'Symbol "{smbl}" already defined')
                 symbols[smbl] = address
-                memory[address] = {'type': 'symbol', 'symbol': smbl, 'line_number': line_number}
-                out = f'{address:04x} | {smbl}\t\t\t| {line_number}'
-                outlines.append(out)
-                print(out)
             else:
                 # Assume to be assembly code
                 tokens = tokenise(line)
@@ -238,37 +237,53 @@ if __name__ == "__main__":
                 memory[address] = {'type': 'instruction', 'op': opcode, 'opr': operands, 'line_number': line_number}
                 address += 2
 
-    out = f'; Symbol table = {symbols}'
+    # Write the header of the .d8 file
+    out = f'; Assembled {filename}\n; Symbol table = {symbols}\n;Adr | Val  | Ln | Debug info'
     outlines.append(out)
     print(out)
 
+    # Now that we have the complete symbol table, do the second pass
     for address, line in memory.items():
         line_number = line['line_number']
         if line['type'] == 'instruction':
             opcode = line['op']
             operands = line['opr']
             m = machine(address, opcode, operands)
-            out = f'{address:04X} | {machine2string(m)}\t| {line_number} | {opcode} {operands}'
+            out = f'{address:04X} | {m:04X} | {line_number:2d} | {opcode} {operands} ({machine2string(m)})'
+            outlines.append(out)
+            print(out)
+        elif line['type'] == 'variable':
+            hexstr = ''.join(f'{v:02X}' for v in line['value'])
+            out = f'{address:04X} | {hexstr} | {line_number:2d} | var:{line["symbol"]}[{len(line["value"])}]'
             outlines.append(out)
             print(out)
         else:
-            out = f'{address:04X} | {line["symbol"]}\t\t\t| {line_number}'
-            outlines.append(out)
-            print(out)
+            raise Exception(f"Unknown type {line['type']}")
 
-        # todo: nice to have: print how assembler resolved the symbol
-
+    # Write the .d8 file
     outfile = filename.rsplit('.')[0] + '.d8'
     with open(outfile, 'w') as f:
         f.writelines(map(lambda s: s + '\n', outlines))
 
     # Output the .hex file to be loaded in to RAM of Digital
-    hex = [0] * (max(memory) + 2)
+    max_memory = max(memory)
+    if memory[max_memory]['type'] == 'variable':
+        max_memory += len(memory[max_memory]['value'])
+    else:
+        max_memory += 2  # For the two bytes of the instruction
+    hex = [0] * max_memory
+
     for address, line in memory.items():
         if line['type'] == 'instruction':
             m = machine(address, line['op'], line['opr'])
             hex[address] = m >> 8
             hex[address + 1] = m & 0xFF
+        elif line['type'] == 'variable':
+            for offset, value in enumerate(line['value']):
+                hex[address+offset] = value
+        else:
+            raise Exception(f'Unknown type {line["type"]}')
+
     outfile = filename.rsplit('.')[0] + '.hex'
     with open(outfile, 'w') as f:
         f.write('v2.0 raw\n')
