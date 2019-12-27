@@ -1,42 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <circuit>
   <version>1</version>
-  <attributes/>
+  <attributes>
+    <entry>
+      <string>Width</string>
+      <int>5</int>
+    </entry>
+  </attributes>
   <visualElements>
     <visualElement>
-      <elementName>In</elementName>
+      <elementName>Clock</elementName>
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>A_in</string>
-        </entry>
-        <entry>
-          <string>Bits</string>
-          <int>16</int>
+          <string>CLK</string>
         </entry>
       </elementAttributes>
-      <pos x="220" y="160"/>
+      <pos x="220" y="40"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
       <elementAttributes>
         <entry>
+          <string>Description</string>
+          <string>Stack pointer page select</string>
+        </entry>
+        <entry>
           <string>Label</string>
-          <string>D_o</string>
+          <string>SPPS</string>
         </entry>
         <entry>
           <string>Bits</string>
           <int>8</int>
         </entry>
       </elementAttributes>
-      <pos x="900" y="420"/>
+      <pos x="900" y="120"/>
     </visualElement>
     <visualElement>
       <elementName>Keyboard</elementName>
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>input</string>
+          <string>KBD</string>
         </entry>
       </elementAttributes>
       <pos x="700" y="420"/>
@@ -56,14 +61,10 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>D_in</string>
-        </entry>
-        <entry>
-          <string>Bits</string>
-          <int>8</int>
+          <string>RAM_w</string>
         </entry>
       </elementAttributes>
-      <pos x="220" y="100"/>
+      <pos x="220" y="240"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -122,7 +123,7 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>output</string>
+          <string>TERM</string>
         </entry>
       </elementAttributes>
       <pos x="700" y="260"/>
@@ -166,16 +167,6 @@
       <pos x="460" y="300"/>
     </visualElement>
     <visualElement>
-      <elementName>Clock</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Label</string>
-          <string>CLK</string>
-        </entry>
-      </elementAttributes>
-      <pos x="220" y="40"/>
-    </visualElement>
-    <visualElement>
       <elementName>In</elementName>
       <elementAttributes>
         <entry>
@@ -190,10 +181,28 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>RAM_w</string>
+          <string>D_in</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>8</int>
         </entry>
       </elementAttributes>
-      <pos x="220" y="240"/>
+      <pos x="220" y="100"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>A_in</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+      </elementAttributes>
+      <pos x="220" y="160"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -328,19 +337,15 @@
       <elementName>Out</elementName>
       <elementAttributes>
         <entry>
-          <string>Description</string>
-          <string>Stack pointer page select</string>
-        </entry>
-        <entry>
           <string>Label</string>
-          <string>SPPS</string>
+          <string>D_o</string>
         </entry>
         <entry>
           <string>Bits</string>
           <int>8</int>
         </entry>
       </elementAttributes>
-      <pos x="900" y="120"/>
+      <pos x="900" y="420"/>
     </visualElement>
     <visualElement>
       <elementName>CounterPreset</elementName>
