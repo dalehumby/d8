@@ -1,5 +1,59 @@
 # Journal / notes of what I have done
 
+## Sat, 28 Dec: Next steps
+
+### Terminal emulator
+Now that the basics of screen output is working, I'd like to implement a basic terminal. Digital supports a screen output and keyboard input, which I've mapped to two memory locations. I need to figure out how to get a screen+keyboard working on my emulator. I initally thought of pressing a key combo like CTRL+^ to switch screens like in Vim, or maybe t for terminals, but I feel like I might be on the path to implementing a terminal... so why not have my emulator expose a local telnet port that terminal emulators can connect to? The TCP port can map incomming bytes to the keyboard buffer, and send bytes written to the screen memory location back out on the TCP port to be displayed on the terminal emulator program.
+
+### Interrupts
+The other thing I am thinking about is interrupts. That way when a keyboard key comes in and interrupt service routine (ISR) is called, and the keypress can be handled. Similarly for countdown timer reaching 0.
+
+I could add two extra bits to the instruction decoder:
+- interrupt pending flag
+- interrupt mask
+
+If there is a pending is high and mask is low and CPU clock is 0, the instead of running the load instruction microcode, it would start the interrupt handling microcode
+- push program counter high
+- push program counter low
+- push status
+- load ISR high in to PCH
+- load ISR low in to PCL
+
+PC pushed to stack is the same as any other branch to soubroutine. Issues are:
+- I dont have a "byte" for the status register. I'm not 100% sure I even want a real byte. Maybe I get rid of the E register, and remap registers. Still need to think how I would then get that register on to the stack, and get it off the stack back in to status when ISR returns.
+- I'm not sure how the interrupt vector would be defined. I could put the vector in RAM, but how do I get it out of RAM and in to the PC? Because then I need to hardcode (?) the location of the vector in to the microcode. Maybe it's like the reset location, and is actually a BRA instruction that's stored in that location. I could also force the ISR location to be in a specific location in RAM, and there is no vector, or rather the vector is hard coded. But still have to figure out how that vector is encoded in to the microcode.
+   - Oh... maybe there can be a bit/command line that reads a hard coded memory location, so when the control line is asserted the location is available on the address bus and can be latched in to the PC. The vector could be stored in two 8-bit registers that are memory mapped, and written/read like the other memory mapped registers.
+
+Come to think of this, I should probably have mapped registers to 0xFFF0? That way there are no wasted bytes in RAM. Not sure how PAGE would be managed.
+
+### Simplification to mneumonics
+- `INC X,X` can become `INC X` where the other register is inferred as the same if it is not specified. This can be expanded to `DEC`, `NOT`, `ROLC` and `RORC`
+- `LDI X, 0` can become `CLR X`
+- Possibly add another addressing mode where can use the low 3 bits of the instruction that's usually used for Rs1 is instead an immediate register used for a signed number, and then can get rid of `INC` and `DEC` instructions and use `ADD X,1` or `ADD X,-1`. This probably needs a new addressing mode, where the 2nd register that is sent to the ALU comes from the addressing module based on bit 3 of the instruction
+- Simplify all the load and store to `LD` and `ST` and infer the addressing mode
+- Could get rid of the `HALT` instruction completley, and have a special case of all 0's in the instruction meaning halt
+
+## Sat, 28 Dec: Another refactor, to add peripherals
+I built some peripherals: screen and keyboard (and the stack pointer page selector.) Real time clock not yet used.
+
+To output a string to the screen, like "Hello World", needed to redefine how variable definitions work. Initally I thought that a variable would be defined like `.data varName 1` for a 1 byte variable named `varName`, and for an array with predefined data something like `.data varName 3 {1,2,3}`. But I haven't found a use for the latter. I _did_ however, find a need to define a string, like `.data str 12 "Hello World"` (Note the 1 extra byte that encodes the null, end-of-string character. I still think that should be explicit, but #TODO need to figure out how C does it, so I try stick to de-facto standards.
+
+As it turned out, my assembler wasn't capable of this, and neither was the .d8 file format. 
+
+I sat down at my laptop earlier in the holiday (in East London) and attempted to do the refactor, but wasn't feeling it. Eventually yesterday afternoon I felt like working again, and spent about 4 hours stripping out the cruft from the assembler (it was outputting symbols and variables that weren't being used by downstream programs), and neatened up the file spec. It now supports variable definitions of abritrary length, and the variable contents as well as the machine instructions are now hex encoded in the file, instead of binary. I also cleaned up the parsers of the emulator so it didn't rely on a string with 1's and 0's to know it was binary :/ Anyway... a little less hacky/alpha than it was.
+
+The io.asm program in the emulator and the Digital implementation works really nicely! Was super happy with how this came out.
+
+### From my commit notes:
+Major refactor of the .d8 file format to handle variables with pre-assigned data
+E.g. io.asm: to output a string needs a string defined in memory.
+This string is set up as part of the program at assembly time as a variable (or maybe constant?)
+but since everything is in RAM then it's really a variable.
+.d8 format now supports string definition of .data, and the assembler, emulator and gui understand this new format
+
+Updated the CPU so that the peripherals are assigned addresses [2:6], and RAM as the rest
+Tested with my 'hello' program, which does indeed write out 'hello' to the terminal :-D
+
 ## Fri, 20 Dec: Completed rafactor
 Yesterday updated my assembler to understand the new offset addressing (yay no off-by-one errors), and how to code for stack pointer and indirect addressing. This took some time, and there were some subtle bugs but got it right.
 
@@ -49,6 +103,7 @@ If I used bit 3 of ALU instructions to tell the CPU that the value in R2 is not 
 
 
 ## Wed, 18 Dec: Major refactor to add addressing modes
+
 Addressing modes now supprted:
 - Inherent: No address in the instruction, the opcode iteself codes how data is moved around
 - Immediate: 8 bit unsigned data stored in the lower byte of the instruction, data moved in to a register
