@@ -191,7 +191,7 @@ if __name__ == "__main__":
                 # Handle . command
                 define = re.search(r"\.define\s+(\w+)\s+(\w+)", line)
                 reset = re.search(r"\.reset\s+(\w+)", line)
-                origin = re.search(r"\.origin\s+(\w+)", line)
+                origin = re.search(r"\.origin\s+([a-zA-Z0-9+ ]+)", line)
                 data = re.search(r"\.data\s+(\w+)\s+(\w+)(?:\s*\"(.*)\")?", line)
                 if define:
                     # Define a constant: .define LENGTH 3

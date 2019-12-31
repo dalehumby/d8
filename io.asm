@@ -3,16 +3,18 @@
 ; Memory mapped register definitions in PAGE 0
 .define    SPPS    0x02      ; Stack pointer page select
 .define    TERM    0x03      ; Terminal output
-.define    KBD     0x04      ; Keyboar input
+.define    KBD     0x04      ; Keyboard input
+.define    RTCH    0x05      ; RTC high byte
+.define    RTCL    0x06      ; RTC low byte
 
-.reset Init
+.define    TOPSTACK 0x0F
+.reset     Init
 
-.origin 0x10
+.origin    TOPSTACK+1
 Init:
     LDI    PAGE, 0
-    LDI    A, 0x00
-    STD    A, SPPS
-    LDI    SP, 0x0F
+    STD    PAGE, SPPS
+    LDI    SP, TOPSTACK
 
 Start:
     LDI    X, &helloStr
