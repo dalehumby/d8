@@ -1,10 +1,14 @@
 ; Multiply 2 8-bit numbers together, resulting in a 16-bit product
 
+; Memory mapped register definitions in PAGE 0
+.define    SPPS    0x02      ; Stack pointer page select
+
 .reset Init
 
 .origin 0x10
 Init:
     LDI     PAGE, 0
+    STD     PAGE, SPPS
     LDI     SP, 0x0F
 
 Start:

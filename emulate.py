@@ -9,6 +9,13 @@ map_num_reg = { value: key.upper() for key, value in map_reg_num.items() }  # in
 
 instruction_map = {value: key for key, value in instruction.items() }
 
+# Memory locations of the peripherals
+periph_map = {
+        'SPPS': 2,
+        'TERM': 3,
+        'KBD': 4
+        }
+
 class Emulator:
     def __init__(self, filename):
         self.memory, self.line_map, self.variables = self._load_d8_file(filename)
@@ -210,7 +217,7 @@ class Emulator:
             #print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
         elif opc == 'ldsp':
             Rd, offset = self._get_reg_opr8s(opr)
-            address = self.registers[map_reg_num['SP']] + offset
+            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
             data = self.memory[address]
             self.registers[Rd] = data
             #print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
@@ -229,7 +236,7 @@ class Emulator:
         elif opc == 'stsp':
             Rs, offset = self._get_reg_opr8s(opr)
             data = self.registers[Rs]
-            address = self.registers[map_reg_num['SP']] + offset
+            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
             self.memory[address] = data
             #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
         elif opc == 'mov':
@@ -253,21 +260,21 @@ class Emulator:
                 self.pc = self.pc + self._get_opr11s(opr)
         elif opc == 'bsr':
             data = self.pc & 0xFF  # Low byte first
-            address = self.registers[map_reg_num['SP']]
+            address = self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]
             self.memory[address] = data
             self.registers[map_reg_num['SP']] += -1  # Always post decrement
             data = self.pc >> 8  # High byte
-            address = self.registers[map_reg_num['SP']]
+            address = self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]
             self.memory[address] = data
             self.registers[map_reg_num['SP']] += -1  # Always post decrement
             self.pc = self.pc + self._get_opr11s(opr)  # Then branch
         elif opc == 'rts':
             # Because of post increment, use the operand to store an offset of 1 so get the correct byte from stack
             _, offset = self._get_reg_opr8s(opr)
-            address = self.registers[map_reg_num['SP']] + offset
+            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
             SPH = self.memory[address]
             self.registers[map_reg_num['SP']] += 1  # Always post increment
-            address = self.registers[map_reg_num['SP']] + offset
+            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
             SPL = self.memory[address]
             self.registers[map_reg_num['SP']] += 1  # Always post increment
             self.pc = SPH << 8 | SPL
@@ -278,13 +285,13 @@ class Emulator:
         elif opc == 'psh':
             Rs, offset = self._get_reg_opr8s(opr)
             data = self.registers[Rs]
-            address = 0 << 8 | self.registers[map_reg_num['SP']] + offset
+            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
             self.memory[address] = data
             self.registers[map_reg_num['SP']] += -1  # Always post decrement
             #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
         elif opc == 'pul':
             Rd, offset = self._get_reg_opr8s(opr)
-            address = 0 << 8 | self.registers[map_reg_num['SP']] + offset
+            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
             data = self.memory[address]
             self.registers[Rd] = data
             self.registers[map_reg_num['SP']] += 1  # Always post increment
@@ -362,5 +369,5 @@ if __name__ == "__main__":
         d8.display_source(source)
         d8.step()
         d8.display_variables()
-        input()
+        input()  # Press Enter to execute next instruction
 
