@@ -1,4 +1,5 @@
-syntax: glob
 env/*
 __pycache__/*
 .DS_Store
+*.hex
+*.d8

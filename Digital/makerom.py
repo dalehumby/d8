@@ -1,17 +1,17 @@
 """
-Write the ROM control unit of the CPU.
-Input: csv file with control instructions
-Output: hex file to load in to Digital
+Write the ROM microcode control unit of the CPU.
+Input: micro.csv with control instructions
+Output: hex file to load in to Digital circuit cimulator
 
+Save the Microcode tab as micro.csv
 https://docs.google.com/spreadsheets/d/1R_vZknDr0SD-eCZZS5yPU8j0XcCEtsu2B878DS3oAyU/edit#gid=0
-To calculate the bits
 
 """
 
 if __name__ == "__main__":
     rom = { address: 0 for address in range(1024) }
 
-    # Open csv file, read contents
+    # Open microcode csv file, read contents
     with open('micro.csv', 'r') as csv:
         lines = csv.readlines()
 
