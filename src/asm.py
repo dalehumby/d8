@@ -22,25 +22,25 @@ parser.add_argument('filename')
 args = parser.parse_args()
 
 register = {
-        'a': 0,
-        'b': 1,
-        'c': 2,
-        'd': 3,
-        'e': 4,
-        'page': 5,
-        'x': 6,
-        'sp': 7
-        }
+    'a': 0,
+    'b': 1,
+    'c': 2,
+    'd': 3,
+    'e': 4,
+    'page': 5,
+    'x': 6,
+    'sp': 7
+}
 
 instruction = {
-        'stop': 0,
-        'ldi': 1, 'ldd': 2, 'ldx': 3, 'ldsp': 4, 'std': 5, 'stx': 6, 'stsp': 7,
-        'mov':  8,
-        'bra': 9, 'bcs': 10, 'bcc': 11, 'beq': 12, 'bne': 13, 'bsr': 14, 'rts': 15,
-        'add': 16, 'adc': 17, 'inc': 18, 'dec': 19, 'and': 20, 'or': 21, 'xor': 22, 'not': 23, 'rolc': 24, 'rorc': 25,
-        'clc': 26, 'sec': 27,
-        'psh': 28, 'pul': 29
-        }
+    'stop': 0,
+    'ldi': 1, 'ldd': 2, 'ldx': 3, 'ldsp': 4, 'std': 5, 'stx': 6, 'stsp': 7,
+    'mov': 8,
+    'bra': 9, 'bcs': 10, 'bcc': 11, 'beq': 12, 'bne': 13, 'bsr': 14, 'rts': 15,
+    'add': 16, 'adc': 17, 'inc': 18, 'dec': 19, 'and': 20, 'or': 21, 'xor': 22, 'not': 23, 'rolc': 24, 'rorc': 25,
+    'clc': 26, 'sec': 27,
+    'psh': 28, 'pul': 29
+}
 
 
 def tokenise(line):
@@ -79,7 +79,8 @@ def machine(address, opcode, operands):
     elif opcode in ['not', 'rolc', 'rorc', 'inc', 'dec']:
         return op_reg_reg(opcode, operands[0], operands[1])
     elif opcode == 'rts':
-        # For RTS, the register is ignored, so set to a; and opr8 points to location SP+1 because the SP dec only happens after a pull
+        # For RTS, the register is ignored, so set to a;
+        # and opr8 points to location SP+1 because the SP dec only happens after a pull
         return op_reg_opr8s(opcode, 'a', 1)
     elif opcode == 'psh':
         # opr8 is 0 because no SP offset
@@ -118,7 +119,9 @@ def resolve_symbol(symbol):
         try:
             address += int(str(s), 0)
         except ValueError:
-            s = s.strip('& ')  # Use the & symbol to refer to an address for readability, but not needed by assembler. Also strip spaces
+            # Use the & symbol to refer to an address for readability, but not needed by assembler.
+            # Also strip spaces
+            s = s.strip('& ')
             try:
                 address += resolve_symbol(symbols[s])
             except KeyError:
@@ -179,7 +182,6 @@ if __name__ == "__main__":
     # First pass of assembler: build the symbol table
     with open(filename, 'r') as f:
 
-
         lines = f.readlines()
         for line_number, line in enumerate(lines, start=1):
             line = line.split(';')[0]  # remove comments
@@ -201,7 +203,12 @@ if __name__ == "__main__":
                     # Create the reset command in first 2 bytes of RAM: .reset Start
                     reset_address = reset.groups()[0]
                     address = 0
-                    memory[address] = {'type': 'instruction', 'op': 'bra', 'opr': [reset_address], 'line_number': line_number}
+                    memory[address] = {
+                            'type': 'instruction',
+                            'op': 'bra',
+                            'opr': [reset_address],
+                            'line_number': line_number
+                        }
                     address += 2
                 elif origin:
                     # Change the address to the origin: .origin 0x0100 or .origin Start
@@ -213,9 +220,9 @@ if __name__ == "__main__":
                     smbl = groups[0]
                     byte_count = resolve_symbol(groups[1])
                     values = groups[2]
-                    v = [ 0 ] * byte_count  # init all bytes to 0
+                    v = [0] * byte_count  # init all bytes to 0
                     if values:
-                        values = [ ord(x) for x in values ]
+                        values = [ord(x) for x in values]
                         v[:len(values)] = values
                     if smbl in symbols:
                         raise Exception(f'Symbol "{smbl}" already defined')
@@ -280,7 +287,7 @@ if __name__ == "__main__":
             hex[address + 1] = m & 0xFF
         elif line['type'] == 'variable':
             for offset, value in enumerate(line['value']):
-                hex[address+offset] = value
+                hex[address + offset] = value
         else:
             raise Exception(f'Unknown type {line["type"]}')
 
