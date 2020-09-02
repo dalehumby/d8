@@ -2,60 +2,63 @@ import curses
 from math import ceil
 from emulate import Emulator
 
+
 def enter_command(screen, cpu, source_pad, source_map):
     """Handle command mode."""
     # Create command bar
     scr_height, scr_width = screen.getmaxyx()
     screen.attron(curses.color_pair(1))
-    screen.addstr(scr_height-1, 0, ':' + " " * (scr_width - 2))
+    screen.addstr(scr_height - 1, 0, ":" + " " * (scr_width - 2))
     screen.move(scr_height - 1, 1)  # Put cursor in status bar
     curses.curs_set(1)  # Switch cursor on
     curses.echo()
     screen.refresh()
 
     # Capture command
-    cmd = screen.getstr(scr_height-1, 1, 20)
+    cmd = screen.getstr(scr_height - 1, 1, 20)
     message = handle_command(cmd, cpu, source_pad, source_map)
 
     # Clear command bar
     # todo: print error messages here
     curses.noecho()
     curses.curs_set(0)
-    screen.addstr(scr_height-1, 0, " "*(scr_width-1))
+    screen.addstr(scr_height - 1, 0, " " * (scr_width - 1))
     screen.attroff(curses.color_pair(1))
+
 
 def handle_command(cmd, cpu, source_pad, source_map):
     """Handle the command that is typed in.
     cmd is initially a byte array, so turn in to a string"""
-    cmd = cmd.decode('utf-8').split()
+    cmd = cmd.decode("utf-8").split()
     if not cmd:
         return
     operands = cmd[1:]
     cmd = cmd[0]
-    if cmd == 'q':
+    if cmd == "q":
         quit()
-    elif cmd == 'reset':
+    elif cmd == "reset":
         unhighlight_source(source_pad, cpu, source_map)
         cpu.reset()
         highlight_source(source_pad, cpu, source_map)
-    elif cmd == 'bd':
+    elif cmd == "bd":
         # Delete a breakpoint
-        line_address = { line: address for address, line in cpu.line_map.items() }
+        line_address = {line: address for address, line in cpu.line_map.items()}
         line = int(operands[0])
         if line in line_address:
             address = line_address[line]
             cpu.delete_breakpoint(address)
             source_pad.attron(curses.color_pair(3))
-            source_pad.addch(line-1, 0, ' ', curses.A_BOLD)
-    elif cmd == 'ba':
+            source_pad.addch(line - 1, 0, " ", curses.A_BOLD)
+    elif cmd == "ba":
         # Add a breakpoint
-        line_address = { line: address for address, line in cpu.line_map.items() }
+        line_address = {line: address for address, line in cpu.line_map.items()}
         line = int(operands[0])
         if line in line_address:
             address = line_address[line]
             cpu.add_breakpoint(address)
             source_pad.attron(curses.color_pair(3))
-            source_pad.addch(line-1, 0, '●', curses.A_BOLD)
+            source_pad.addch(line - 1, 0, "●", curses.A_BOLD)
+
 
 def handle_step(pad, cpu, source_map):
     """Handle a single step of the CPU."""
@@ -86,53 +89,60 @@ def draw_registers(win, cpu):
         Turn the machine code IR in to a printable string.
         Chunk so easy to read
         """
-        s = format(ir, '016b')
-        return s[0:5] + ' ' + s[5:8] + ' ' + s[8:12] + ' ' + s[12:16]
+        s = format(ir, "016b")
+        return s[0:5] + " " + s[5:8] + " " + s[8:12] + " " + s[12:16]
 
     def reg2string(reg):
         """Format the registers in to something readable."""
-        return f'{reg:3} 0x{reg:02X} b{reg:08b}'
+        return f"{reg:3} 0x{reg:02X} b{reg:08b}"
 
     win.attron(curses.color_pair(2))
-    win.addstr(0, 0,   'Registers')
-    win.addstr(1, 0,  f'S:{int(cpu.status["stop"])}  C:{int(cpu.status["carry"])}  Z:{int(cpu.status["zero"])}')
-    win.addstr(2, 0,  f'A    {reg2string(cpu.registers[0])}')
-    win.addstr(3, 0,  f'B    {reg2string(cpu.registers[1])}')
-    win.addstr(4, 0,  f'C    {reg2string(cpu.registers[2])}')
-    win.addstr(5, 0,  f'D    {reg2string(cpu.registers[3])}')
-    win.addstr(6, 0,  f'E    {reg2string(cpu.registers[4])}')
-    win.addstr(7, 0,  f'PAGE {reg2string(cpu.registers[5])}')
-    win.addstr(8, 0,  f'X    {reg2string(cpu.registers[6])}')
-    win.addstr(9, 0,  f'SP   {reg2string(cpu.registers[7])}')
-    win.addstr(10, 0, f'PC   0x{cpu.pc:04X}')
-    win.addstr(11, 0, f'IR   {ir2string(cpu.ir)}')
+    win.addstr(0, 0, "Registers")
+    win.addstr(
+        1,
+        0,
+        f'S:{int(cpu.status["stop"])}  C:{int(cpu.status["carry"])}  Z:{int(cpu.status["zero"])}',
+    )
+    win.addstr(2, 0, f"A    {reg2string(cpu.registers[0])}")
+    win.addstr(3, 0, f"B    {reg2string(cpu.registers[1])}")
+    win.addstr(4, 0, f"C    {reg2string(cpu.registers[2])}")
+    win.addstr(5, 0, f"D    {reg2string(cpu.registers[3])}")
+    win.addstr(6, 0, f"E    {reg2string(cpu.registers[4])}")
+    win.addstr(7, 0, f"PAGE {reg2string(cpu.registers[5])}")
+    win.addstr(8, 0, f"X    {reg2string(cpu.registers[6])}")
+    win.addstr(9, 0, f"SP   {reg2string(cpu.registers[7])}")
+    win.addstr(10, 0, f"PC   0x{cpu.pc:04X}")
+    win.addstr(11, 0, f"IR   {ir2string(cpu.ir)}")
     win.noutrefresh()
+
 
 def draw_variables(win, cpu):
     win.attron(curses.color_pair(2))
-    win.addstr(0, 0, 'Variables')
+    win.addstr(0, 0, "Variables")
     y = 1
     for name, v in cpu.variables.items():
-        values = [ cpu.memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
+        values = [
+            cpu.memory[adr] for adr in range(v["address"], v["address"] + v["length"])
+        ]
         win.addstr(y, 0, f'{name}[{v["address"]:04X}]: {values}')
         y += 1  # todo: can I do this in the iterator?
     if not cpu.variables:
-        win.addstr(y, 0, '--')
+        win.addstr(y, 0, "--")
     win.noutrefresh()
 
 
 def draw_memory(pad, cpu):
     pad.attron(curses.color_pair(2))
-    pad.addstr(0, 0, 'Memory')
+    pad.addstr(0, 0, "Memory")
     y = 1
     for base_adr in range(0, max(cpu.memory), 8):
-        values = ''
-        for adr in range(base_adr, base_adr+8):
+        values = ""
+        for adr in range(base_adr, base_adr + 8):
             try:
-                values += f'{cpu.memory[adr]:02X} '
+                values += f"{cpu.memory[adr]:02X} "
             except KeyError:
-                values += '-- '
-        pad.addstr(y, 0, f'{base_adr:04X}  {values}')
+                values += "-- "
+        pad.addstr(y, 0, f"{base_adr:04X}  {values}")
         y += 1
 
 
@@ -155,17 +165,17 @@ def run_emulator(stdscr, filename):
     # Source code pad
     source_pad = curses.newpad(len(source), 100)
     source_pad.attron(curses.color_pair(2))
-    line_address = { line: address for address, line in cpu.line_map.items() }
+    line_address = {line: address for address, line in cpu.line_map.items()}
     source_map = {}
     for y, text in enumerate(source):
         line_number = y + 1
         try:
             address = line_address[line_number]
-            string = f'{line_number:2d} {address:04X}  {text}'
+            string = f"{line_number:2d} {address:04X}  {text}"
             source_map[address] = (y, string)
         except KeyError:
             # Else the source line doenst have an address so print it but dont record
-            string = f'{line_number:2d} ----  {text}'
+            string = f"{line_number:2d} ----  {text}"
         source_pad.addstr(y, 1, string)
     top_row = 0
 
@@ -179,18 +189,22 @@ def run_emulator(stdscr, filename):
 
     # Registers window
     reg_win_height = 12
-    reg_win = curses.newwin(reg_win_height, right_win_width, 1, scr_width-right_win_width)
+    reg_win = curses.newwin(
+        reg_win_height, right_win_width, 1, scr_width - right_win_width
+    )
 
     # Variables window
     var_win_height = 2 + len(cpu.variables)
-    var_win = curses.newwin(var_win_height, right_win_width, reg_win_height+2, scr_width-right_win_width)
+    var_win = curses.newwin(
+        var_win_height, right_win_width, reg_win_height + 2, scr_width - right_win_width
+    )
 
     # Memory pad
     # todo: Memory on a line on its own, with a pad below so can scroll around memory
     mem_pad_height = 2 + ceil(max(cpu.memory) / 8)
     mem_pad = curses.newpad(mem_pad_height, right_win_width)
 
-     # Render title bar
+    # Render title bar
     stdscr.attron(curses.color_pair(1))
     stdscr.addstr(0, 0, filename)
     stdscr.addstr(0, len(filename), " " * (scr_width - len(filename) - 1))
@@ -199,33 +213,42 @@ def run_emulator(stdscr, filename):
     # Render the command bar
     curses.curs_set(0)
     stdscr.attron(curses.color_pair(1))
-    stdscr.addstr(scr_height-1, 0, " "*(scr_width-1))
+    stdscr.addstr(scr_height - 1, 0, " " * (scr_width - 1))
     stdscr.attroff(curses.color_pair(1))
 
     k = 0
     while True:
         # Code window
-        if k == ord(':'):
+        if k == ord(":"):
             enter_command(stdscr, cpu, source_pad, source_map)
         elif k == curses.KEY_DOWN:
             top_row += 1
-            top_row = min(len(source)-scr_height+2, top_row)
+            top_row = min(len(source) - scr_height + 2, top_row)
         elif k == curses.KEY_UP:
             top_row -= 1
             top_row = max(0, top_row)
-        elif k == ord('s'):
+        elif k == ord("s"):
             handle_step(source_pad, cpu, source_map)
-        elif k == ord('r'):
+        elif k == ord("r"):
             unhighlight_source(source_pad, cpu, source_map)
             cpu.run()
             highlight_source(source_pad, cpu, source_map)
 
         # Update the screen
-        source_pad.noutrefresh(top_row, 0, 1, 0, scr_height-2, scr_width-right_win_width)
+        source_pad.noutrefresh(
+            top_row, 0, 1, 0, scr_height - 2, scr_width - right_win_width
+        )
         draw_registers(reg_win, cpu)
         draw_variables(var_win, cpu)
         draw_memory(mem_pad, cpu)
-        mem_pad.noutrefresh(0, 0, 1+reg_win_height+var_win_height+2, scr_width-right_win_width, scr_height-2, scr_width)
+        mem_pad.noutrefresh(
+            0,
+            0,
+            1 + reg_win_height + var_win_height + 2,
+            scr_width - right_win_width,
+            scr_height - 2,
+            scr_width,
+        )
 
         # Refresh the screen
         curses.doupdate()
@@ -238,7 +261,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('filename', help='.d8 file to load in to emulator')
+    parser.add_argument("filename", help=".d8 file to load in to emulator")
     args = parser.parse_args()
 
     curses.wrapper(run_emulator, args.filename)

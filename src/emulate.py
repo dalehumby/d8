@@ -4,17 +4,18 @@ import re
 from textwrap import wrap
 from asm import register as map_reg_num, instruction
 
-map_reg_num = { key.upper(): value for key, value in map_reg_num.items() }  # uppercase the keys
-map_num_reg = { value: key.upper() for key, value in map_reg_num.items() }  # invert the dictionary
+map_reg_num = {
+    key.upper(): value for key, value in map_reg_num.items()
+}  # uppercase the keys
+map_num_reg = {
+    value: key.upper() for key, value in map_reg_num.items()
+}  # invert the dictionary
 
-instruction_map = {value: key for key, value in instruction.items() }
+instruction_map = {value: key for key, value in instruction.items()}
 
 # Memory locations of the peripherals
-periph_map = {
-        'SPPS': 2,
-        'TERM': 3,
-        'KBD': 4
-        }
+periph_map = {"SPPS": 2, "TERM": 3, "KBD": 4}
+
 
 class Emulator:
     def __init__(self, filename):
@@ -24,17 +25,13 @@ class Emulator:
 
     def reset(self):
         self.pc = 0
-        self.status = {
-            'zero': False,
-            'carry': False,
-            'stop': False
-            }
+        self.status = {"zero": False, "carry": False, "stop": False}
         self.registers = [0] * 8
         self.ir = 0
 
     def step(self):
         """Step the CPU by 1 instruction."""
-        if not self.status['stop']:
+        if not self.status["stop"]:
             self._fetch()
             opcode, operands = self._decode()
             self._execute(opcode, operands)
@@ -42,7 +39,7 @@ class Emulator:
     def run(self):
         """Run the CPU until we hit a breakpoint or Stop flag is true."""
         self.step()  # First step to move away from any breakpoints
-        while not self.status['stop'] and self.pc not in self.breakpoints:
+        while not self.status["stop"] and self.pc not in self.breakpoints:
             self.step()
 
     def add_breakpoint(self, address):
@@ -57,15 +54,18 @@ class Emulator:
 
     def display_source(self, source):
         line_number = self.line_map[self.pc]
-        source_line = source[line_number-1]
-        print(f'{line_number} : {source_line}')
+        source_line = source[line_number - 1]
+        print(f"{line_number} : {source_line}")
 
     def display_variables(self):
         """Display all the variables and their content."""
-        print(f'Status: {self.status}')
-        print(f'Registers: {self.registers}\tPC: 0x{self.pc:04x}')
+        print(f"Status: {self.status}")
+        print(f"Registers: {self.registers}\tPC: 0x{self.pc:04x}")
         for name, v in self.variables.items():
-            content = [ self.memory[adr] for adr in range(v['address'], v['address'] + v['length']) ]
+            content = [
+                self.memory[adr]
+                for adr in range(v["address"], v["address"] + v["length"])
+            ]
             print(f'{name}[{v["length"]}]: {content}')
 
     def _load_d8_file(self, filename):
@@ -73,7 +73,7 @@ class Emulator:
         memory = {}
         line_map = {}
         variables = {}
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             for line in f.readlines():
                 mem, line_number, variable = self._parseline(line)
                 if mem:
@@ -89,10 +89,10 @@ class Emulator:
         Load the original source .asm file
         Returns a list of lines that you can index in to
         """
-        filename = filename.split('.')[0] + '.asm'
-        with open(filename, 'r') as f:
+        filename = filename.split(".")[0] + ".asm"
+        with open(filename, "r") as f:
             lines = f.readlines()
-        lines = [ line.rstrip() for line in lines ]
+        lines = [line.rstrip() for line in lines]
         return lines
 
     def _parseline(self, line):
@@ -100,33 +100,40 @@ class Emulator:
         Given a line in d8 format, return a dictionary with the key as the address
         and the value as a tuple of (memory contents, line number, variable)
         """
-        if line.startswith(';'):
+        if line.startswith(";"):
             # Skip comment lines
             return None, None, None
         else:
-            line = line.split('|')
+            line = line.split("|")
             address = int(line[0].strip(), 16)
             value = line[1].strip()
             line_number = int(line[2].strip(), 10)
             debug = line[3].strip()
-            if debug.startswith('var:'):
+            if debug.startswith("var:"):
                 # Handle variables
                 memory = {}
-                result = re.search(r'var\:(\w+)\[(\d+)\]', debug)
+                result = re.search(r"var\:(\w+)\[(\d+)\]", debug)
                 name = result.groups()[0]
                 length = int(result.groups()[1], 10)
-                for adr, val in zip(range(address, address+length), wrap(value, 2)):
+                for adr, val in zip(range(address, address + length), wrap(value, 2)):
                     memory[adr] = int(val, 16)
-                return memory, {address: line_number}, {name: {'length': length, 'address': address}}
+                return (
+                    memory,
+                    {address: line_number},
+                    {name: {"length": length, "address": address}},
+                )
             else:
                 if len(value) == 4:
                     # Handle machine instruction
                     high_byte = int(value[0:2], 16)
                     low_byte = int(value[2:], 16)
-                    return {address: high_byte, address+1: low_byte}, {address: line_number}, None
+                    return (
+                        {address: high_byte, address + 1: low_byte},
+                        {address: line_number},
+                        None,
+                    )
                 else:
-                    raise Exception(f'Error parsing line {line_number}')
-
+                    raise Exception(f"Error parsing line {line_number}")
 
     def _fetch(self):
         """
@@ -143,7 +150,7 @@ class Emulator:
         Decode the instruction register (ir) in to the opcode and operations.
         Map the integer opcode to the text instruction.
         """
-        opcode =  (self.ir & 0b1111100000000000) >> 11
+        opcode = (self.ir & 0b1111100000000000) >> 11
         operands = self.ir & 0b0000011111111111
         opcode = instruction_map[opcode]
         return opcode, operands
@@ -178,7 +185,7 @@ class Emulator:
         opr8s = operands & 0xFF
         # Two's complement
         if opr8s > 127:
-            offset = opr8s - 2**8
+            offset = opr8s - 2 ** 8
         else:
             offset = opr8s
         return Rd, offset
@@ -188,119 +195,151 @@ class Emulator:
         opr11s = operands
         # Two's complement
         if opr11s > 1023:
-            offset = opr11s - 2**11
+            offset = opr11s - 2 ** 11
         else:
             offset = opr11s
         return offset
 
     def _execute(self, opc, opr):
         """Execute the current opcode."""
-        #print(f'Execute: {opc}\t 0b{opr:011b}({opr})')
+        # print(f'Execute: {opc}\t 0b{opr:011b}({opr})')
 
-        if opc == 'stop':
-            self.status['stop'] = True
-        elif opc == 'ldi':
-           Rd, data = self._get_reg_opr8u(opr)
-           self.registers[Rd] = data
-           #print(f'{map_num_reg[Rd]}<-{data}')
-        elif opc == 'ldd':
-           Rd, lsb = self._get_reg_opr8u(opr)
-           address = self.registers[map_reg_num['PAGE']] << 8 | lsb
-           data = self.memory[address]
-           self.registers[Rd] = data
-           #print(f'{map_num_reg[Rd]}<-{data}<-memory[{address}]')
-        elif opc == 'ldx':
-            Rd, offset = self._get_reg_opr8s(opr)
-            address = self.registers[map_reg_num['PAGE']] << 8 | self.registers[map_reg_num['X']] + offset
+        if opc == "stop":
+            self.status["stop"] = True
+        elif opc == "ldi":
+            Rd, data = self._get_reg_opr8u(opr)
+            self.registers[Rd] = data
+            # print(f'{map_num_reg[Rd]}<-{data}')
+        elif opc == "ldd":
+            Rd, lsb = self._get_reg_opr8u(opr)
+            address = self.registers[map_reg_num["PAGE"]] << 8 | lsb
             data = self.memory[address]
             self.registers[Rd] = data
-            #print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
-        elif opc == 'ldsp':
+            # print(f'{map_num_reg[Rd]}<-{data}<-memory[{address}]')
+        elif opc == "ldx":
             Rd, offset = self._get_reg_opr8s(opr)
-            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
+            address = (
+                self.registers[map_reg_num["PAGE"]] << 8
+                | self.registers[map_reg_num["X"]] + offset
+            )
             data = self.memory[address]
             self.registers[Rd] = data
-            #print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
-        elif opc == 'std':
+            # print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
+        elif opc == "ldsp":
+            Rd, offset = self._get_reg_opr8s(opr)
+            address = (
+                self.memory[periph_map["SPPS"]] << 8 | self.registers[map_reg_num["SP"]]
+            ) + offset
+            data = self.memory[address]
+            self.registers[Rd] = data
+            # print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
+        elif opc == "std":
             Rs, lsb = self._get_reg_opr8u(opr)
-            address = self.registers[map_reg_num['PAGE']] << 8 | lsb
+            address = self.registers[map_reg_num["PAGE"]] << 8 | lsb
             data = self.registers[Rs]
             self.memory[address] = data
-            #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
-        elif opc == 'stx':
+            # print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
+        elif opc == "stx":
             Rs, offset = self._get_reg_opr8s(opr)
             data = self.registers[Rs]
-            address = self.registers[map_reg_num['PAGE']] << 8 | self.registers[map_reg_num['X']] + offset
+            address = (
+                self.registers[map_reg_num["PAGE"]] << 8
+                | self.registers[map_reg_num["X"]] + offset
+            )
             self.memory[address] = data
-            #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
-        elif opc == 'stsp':
+            # print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
+        elif opc == "stsp":
             Rs, offset = self._get_reg_opr8s(opr)
             data = self.registers[Rs]
-            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
+            address = (
+                self.memory[periph_map["SPPS"]] << 8 | self.registers[map_reg_num["SP"]]
+            ) + offset
             self.memory[address] = data
-            #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
-        elif opc == 'mov':
+            # print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
+        elif opc == "mov":
             Rd, Rs = self._get_reg_reg(opr)
             data = self.registers[Rs]
             self.registers[Rd] = data
-            #print(f'{map_num_reg[Rd]}<-{data}<-{map_num_reg[Rs]}')
-        elif opc == 'bra':
+            # print(f'{map_num_reg[Rd]}<-{data}<-{map_num_reg[Rs]}')
+        elif opc == "bra":
             self.pc = self.pc + self._get_opr11s(opr)
-        elif opc == 'beq':
-            if self.status['zero']:
+        elif opc == "beq":
+            if self.status["zero"]:
                 self.pc = self.pc + self._get_opr11s(opr)
-        elif opc == 'bne':
-            if not self.status['zero']:
+        elif opc == "bne":
+            if not self.status["zero"]:
                 self.pc = self.pc + self._get_opr11s(opr)
-        elif opc == 'bcs':
-            if self.status['carry']:
+        elif opc == "bcs":
+            if self.status["carry"]:
                 self.pc = self.pc + self._get_opr11s(opr)
-        elif opc == 'bcc':
-            if not self.status['carry']:
+        elif opc == "bcc":
+            if not self.status["carry"]:
                 self.pc = self.pc + self._get_opr11s(opr)
-        elif opc == 'bsr':
+        elif opc == "bsr":
             data = self.pc & 0xFF  # Low byte first
-            address = self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]
+            address = (
+                self.memory[periph_map["SPPS"]] << 8 | self.registers[map_reg_num["SP"]]
+            )
             self.memory[address] = data
-            self.registers[map_reg_num['SP']] += -1  # Always post decrement
+            self.registers[map_reg_num["SP"]] += -1  # Always post decrement
             data = self.pc >> 8  # High byte
-            address = self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]
+            address = (
+                self.memory[periph_map["SPPS"]] << 8 | self.registers[map_reg_num["SP"]]
+            )
             self.memory[address] = data
-            self.registers[map_reg_num['SP']] += -1  # Always post decrement
+            self.registers[map_reg_num["SP"]] += -1  # Always post decrement
             self.pc = self.pc + self._get_opr11s(opr)  # Then branch
-        elif opc == 'rts':
+        elif opc == "rts":
             # Because of post increment, use the operand to store an offset of 1 so get the correct byte from stack
             _, offset = self._get_reg_opr8s(opr)
-            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
+            address = (
+                self.memory[periph_map["SPPS"]] << 8 | self.registers[map_reg_num["SP"]]
+            ) + offset
             SPH = self.memory[address]
-            self.registers[map_reg_num['SP']] += 1  # Always post increment
-            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
+            self.registers[map_reg_num["SP"]] += 1  # Always post increment
+            address = (
+                self.memory[periph_map["SPPS"]] << 8 | self.registers[map_reg_num["SP"]]
+            ) + offset
             SPL = self.memory[address]
-            self.registers[map_reg_num['SP']] += 1  # Always post increment
+            self.registers[map_reg_num["SP"]] += 1  # Always post increment
             self.pc = SPH << 8 | SPL
-        elif opc in ['add', 'adc', 'inc', 'dec', 'and', 'or', 'xor', 'not', 'rolc', 'rorc']:
+        elif opc in [
+            "add",
+            "adc",
+            "inc",
+            "dec",
+            "and",
+            "or",
+            "xor",
+            "not",
+            "rolc",
+            "rorc",
+        ]:
             self._alu(opc, opr)
-        elif opc in ['clc', 'sec']:
-            self.status['carry'] = (opc == 'sec')
-        elif opc == 'psh':
+        elif opc in ["clc", "sec"]:
+            self.status["carry"] = opc == "sec"
+        elif opc == "psh":
             Rs, offset = self._get_reg_opr8s(opr)
             data = self.registers[Rs]
-            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
+            address = (
+                self.memory[periph_map["SPPS"]] << 8 | self.registers[map_reg_num["SP"]]
+            ) + offset
             self.memory[address] = data
-            self.registers[map_reg_num['SP']] += -1  # Always post decrement
-            #print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
-        elif opc == 'pul':
+            self.registers[map_reg_num["SP"]] += -1  # Always post decrement
+            # print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
+        elif opc == "pul":
             Rd, offset = self._get_reg_opr8s(opr)
-            address = (self.memory[periph_map['SPPS']] << 8 | self.registers[map_reg_num['SP']]) + offset
+            address = (
+                self.memory[periph_map["SPPS"]] << 8 | self.registers[map_reg_num["SP"]]
+            ) + offset
             data = self.memory[address]
             self.registers[Rd] = data
-            self.registers[map_reg_num['SP']] += 1  # Always post increment
-            #print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
+            self.registers[map_reg_num["SP"]] += 1  # Always post increment
+            # print(f'{map_num_reg[Rd]}<-{data}<-memory[X={address}]')
         else:
-            #print(self.status)
-            #print(self.registers)
-            raise Exception('Unrecognised opcode {opc}')
-
+            # print(self.status)
+            # print(self.registers)
+            raise Exception("Unrecognised opcode {opc}")
 
     def _alu(self, opcode, operands):
         """Emulate the ALU execution cycles."""
@@ -314,41 +353,49 @@ class Emulator:
 
         Rd, Rs1, Rs2 = self._get_reg_reg_reg(operands)
 
-        if opcode == 'add':
-            data, self.status['carry'] = _full_add(self.registers[Rs1], self.registers[Rs2], 0)
-        elif opcode == 'adc':
-            data, self.status['carry'] = _full_add(self.registers[Rs1], self.registers[Rs2], self.status['carry'])
-        elif opcode == 'inc':
-            data, self.status['carry'] = _full_add(self.registers[Rs1], 0, 1)
-        elif opcode == 'dec':
-            data, self.status['carry'] = _full_add(self.registers[Rs1], 0xFF, 0)
-            self.status['carry'] = not self.status['carry']  # for a dec, the carry logic is inverted, so carry means borrow here
-        elif opcode == 'and':
+        if opcode == "add":
+            data, self.status["carry"] = _full_add(
+                self.registers[Rs1], self.registers[Rs2], 0
+            )
+        elif opcode == "adc":
+            data, self.status["carry"] = _full_add(
+                self.registers[Rs1], self.registers[Rs2], self.status["carry"]
+            )
+        elif opcode == "inc":
+            data, self.status["carry"] = _full_add(self.registers[Rs1], 0, 1)
+        elif opcode == "dec":
+            data, self.status["carry"] = _full_add(self.registers[Rs1], 0xFF, 0)
+            self.status["carry"] = not self.status[
+                "carry"
+            ]  # for a dec, the carry logic is inverted, so carry means borrow here
+        elif opcode == "and":
             data = self.registers[Rs1] & self.registers[Rs2]
-            self.status['carry'] = 0
-        elif opcode == 'or':
+            self.status["carry"] = 0
+        elif opcode == "or":
             data = self.registers[Rs1] | self.registers[Rs2]
-            self.status['carry'] = 0
-        elif opcode == 'xor':
+            self.status["carry"] = 0
+        elif opcode == "xor":
             data = self.registers[Rs1] ^ self.registers[Rs2]
-            self.status['carry'] = 0
-        elif opcode == 'not':
+            self.status["carry"] = 0
+        elif opcode == "not":
             data = ~self.registers[Rs1]
-            self.status['carry'] = 0
-        elif opcode == 'rolc':
+            self.status["carry"] = 0
+        elif opcode == "rolc":
             # Rotate left through carry
-            data = (self.registers[Rs1] << 1) + self.status['carry']
-            self.status['carry'] = data > 0xFF
+            data = (self.registers[Rs1] << 1) + self.status["carry"]
+            self.status["carry"] = data > 0xFF
             data &= 0xFF
-        elif opcode == 'rorc':
+        elif opcode == "rorc":
             # Rotate right through carry
-            data = int(self.status['carry']) << 8
+            data = int(self.status["carry"]) << 8
             data |= self.registers[Rs1]
-            self.status['carry'] = bool(data % 2)  # New carry value is the least sig bit
+            self.status["carry"] = bool(
+                data % 2
+            )  # New carry value is the least sig bit
             data = data >> 1
 
         # Set the status bits
-        self.status['zero'] = (data == 0)
+        self.status["zero"] = data == 0
 
         # If bit 7 in IR is clear then save the result
         if operands & 0b10000000 == 0:
@@ -359,15 +406,14 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('filename', help='.d8 file to load in to emulator')
+    parser.add_argument("filename", help=".d8 file to load in to emulator")
     args = parser.parse_args()
 
     d8 = Emulator(args.filename)
     source = d8.load_source(args.filename)
 
-    while not d8.status['stop']:
+    while not d8.status["stop"]:
         d8.display_source(source)
         d8.step()
         d8.display_variables()
         input()  # Press Enter to execute next instruction
-
