@@ -25,6 +25,7 @@ register = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "page": 5, "x": 6, "sp": 7}
 
 instruction = {
     "stop": 0,
+    "clr": 1,
     "ldi": 1,
     "ldd": 2,
     "ldx": 3,
@@ -95,6 +96,9 @@ def machine(address, opcode, operands):
     elif opcode in ["add", "adc", "and", "or", "xor"]:
         return op_reg_reg_reg(opcode, operands[0], operands[1], operands[2])
     elif opcode in ["not", "rolc", "rorc", "inc", "dec"]:
+        if len(operands) == 1:
+            # If only 1 register specified then source and destination registers are the same
+            operands.append(operands[0])
         return op_reg_reg(opcode, operands[0], operands[1])
     elif opcode == "rts":
         # For RTS, the register is ignored, so set to a;
@@ -109,6 +113,9 @@ def machine(address, opcode, operands):
     elif opcode == "cmp":
         # A compare is the same as an XOR, but in this case we discard the result
         return op_reg_reg_reg("xor", "a", operands[0], operands[1], compare=True)
+    elif opcode == "clr":
+        # Pseudo-opcode for clear
+        return op_reg_opr8s(opcode, operands[0], 0)
     else:
         raise Exception(f"Unrecognised opcode {opcode}")
 

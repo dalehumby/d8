@@ -11,18 +11,18 @@ Start:
 
     ; Initialise the Fibonacci sequence
     LDI     X, &fib
-    LDI     A, 0
+    CLR     A
     STX     A, 0
-    INC     X, X
+    INC     X
     LDI     B, 1
     STX     B, 0
-    INC     X, X
+    INC     X
 
 Loop:
     ; Calculate the next value in the sequence
     ADD     C, A, B
     STX     C, 0
-    INC     X, X
+    INC     X
     MOV     A, B
     MOV     B, C
 

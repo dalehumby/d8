@@ -5,6 +5,7 @@
 ; DEFINES, MACROS and ASSEMBLER OPCODES (LDA)
 ; , space; space around +-*/
 ; Jump points are PascalCase: MainLoop
+
 ; Subroutines are PascalCase with _Sub postfix: StreamBytes_Sub
 ; Variables are camelCase: dataBufferAddress
 ; Opcode in col 9, operands in col 17, comments col 41 (or at least aligned in that block of code.)
@@ -26,6 +27,7 @@
 
 .origin Main
 Start:
+    CLR     PAGE
 	LDI		A, 0xFE
 	STD		A, temp+1
 Start2:
@@ -39,7 +41,7 @@ Start2:
 	BNE		Start2
 	
 	LDI		X, &fibonacci		; Load the first bytes' address in to X
-	STX		B 					; Store the value of B at address X: [X] <- B
+	STX		B, 1				; Store the value of B at address X: [X] <- B
 	BRA		Start
 
 

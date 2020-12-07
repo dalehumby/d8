@@ -7,7 +7,7 @@
 
 .origin 0x10
 Init:
-    LDI     PAGE, 0
+    CLR     PAGE
     STD     PAGE, SPPS
     LDI     SP, 0x0F
 
@@ -46,7 +46,7 @@ NextBitSP:
     CMP     C, E        ; C == 0?
     BEQ     DoneSP      ; If no more bits to multiply by then we're done
 
-    RORC    C, C        ; Do we need to do an add?
+    RORC    C           ; Do we need to do an add?
     BCC     RotateABSP  ; If not then skip
 
     LDSP    D, 4        ; Else we need to do the add, low byte first
@@ -78,7 +78,7 @@ NextBit:
     CMP     C, E        ; C == 0?
     BEQ     Done        ; If no more bits to multiply by then we're done
 
-    RORC    C, C        ; Do we need to do an add?
+    RORC    C           ; Do we need to do an add?
     BCC     RotateAB    ; If not then skip
 
     LDX     D, 1        ; Else we need to do the add, low byte first
@@ -89,8 +89,8 @@ NextBit:
     STX     D, 0        ; Store high byte
 
 RotateAB:
-    ROLC    B, B        ; Always rotate A:B
-    ROLC    A, A        ; Shift the MSB of B in to A
+    ROLC    B           ; Always rotate A:B
+    ROLC    A           ; Shift the MSB of B in to A
     BRA     NextBit
 Done:
     RTS
