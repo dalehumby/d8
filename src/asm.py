@@ -61,7 +61,7 @@ instruction = {
 def tokenise(line):
     """Split a line in to the component parts."""
     return re.split(
-        r"[^A-Za-z0-9_+]+", line
+        r"[^A-Za-z0-9_+&#]+", line
     )  # split on any character that is not (^) in that list []
 
 
@@ -85,10 +85,30 @@ def machine(address, opcode, operands):
 
     if opcode in ["stop", "clc", "sec"]:
         return op(opcode)
-    elif opcode in ["ldi", "ldd", "std"]:
-        return op_reg_opr8u(opcode, operands[0], operands[1])
-    elif opcode in ["ldx", "ldsp", "stx", "stsp"]:
-        return op_reg_opr8s(opcode, operands[0], operands[1])
+    elif opcode == "ld":
+        if operands[1][0] == "#" or operands[1][0] == "&":
+            opcode = "ldi"
+            operands[1] = operands[1][1:]
+            return op_reg_opr8u(opcode, operands[0], operands[1])
+        elif operands[1] == "x":
+            opcode = "ldx"
+            return op_reg_opr8s(opcode, operands[0], operands[2])
+        elif operands[1] == "sp":
+            opcode = "ldsp"
+            return op_reg_opr8s(opcode, operands[0], operands[2])
+        else:
+            opcode = "ldd"
+            return op_reg_opr8u(opcode, operands[0], operands[1])
+    elif opcode == "st":
+        if operands[1] == "x":
+            opcode = "stx"
+            return op_reg_opr8s(opcode, operands[0], operands[2])
+        elif operands[1] == "sp":
+            opcode = "stsp"
+            return op_reg_opr8s(opcode, operands[0], operands[2])
+        else:
+            opcode = "std"
+            return op_reg_opr8u(opcode, operands[0], operands[1])
     elif opcode == "mov":
         return op_reg_reg(opcode, operands[0], operands[1])
     elif opcode in ["bra", "bcs", "bcc", "beq", "bne", "bsr"]:
