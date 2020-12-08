@@ -1,5 +1,6 @@
 import curses
 from math import ceil
+
 from emulate import Emulator
 
 

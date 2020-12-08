@@ -2,7 +2,9 @@
 
 import re
 from textwrap import wrap
-from asm import register as map_reg_num, instruction
+
+from asm import instruction
+from asm import register as map_reg_num
 
 map_reg_num = {
     key.upper(): value for key, value in map_reg_num.items()
@@ -290,7 +292,7 @@ class Emulator:
             self.registers[map_reg_num["SP"]] += -1  # Always post decrement
             self.pc = self.pc + self._get_opr11s(opr)  # Then branch
         elif opc == "rts":
-            # Because of post increment, use the operand to store an offset of 1 so get the correct byte from stack
+            # Because of post increment use the operand to store an offset of 1 so get correct byte from stack
             _, offset = self._get_reg_opr8s(opr)
             address = (
                 self.memory[periph_map["SPPS"]] << 8 | self.registers[map_reg_num["SP"]]
