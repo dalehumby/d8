@@ -1,0 +1,64 @@
+program: line+
+
+line: [macro | label | instruction] [comment] 
+
+comment: /;.*/
+
+macro: "."(reset | origin | define | data)
+reset: "reset" location
+origin: "origin" location
+define: "define" CNAME definition
+data: "data" CNAME INT ESCAPED_STRING?
+
+label: CNAME ":"
+
+instruction: "ADC" REG "," REG "," REG          -> adc
+           | "ADD" REG "," REG "," REG          -> add
+           | "AND" REG "," REG "," REG          -> and
+           | "BCC" location                     -> bcc
+           | "BCS" location                     -> bcs
+           | "BEQ" location                     -> beq
+           | "BNE" location                     -> bne
+           | "BRA" location                     -> bra
+           | "BSR" location                     -> bsr
+           | "CLC"                              -> clc 
+           | "CLR" REG                          -> clr
+           | "CMP" REG "," REG                  -> cmp
+           | "DEC" REG ["," REG]                -> dec
+           | "INC" REG ["," REG]                -> inc
+           | "LD" REG "," "#" definition        -> ldi
+           | "LD" REG "," "&" location          -> ldi
+           | "LD" REG "," location              -> ldd
+           | "LD" REG "," "X" "," SIGNED_INT    -> ldx
+           | "LD" REG "," "SP" "," SIGNED_INT   -> ldsp
+           | "MOV" REG "," REG                  -> mov
+           | "NOT" REG ["," REG]                -> not
+           | "OR" REG "," REG "," REG           -> or
+           | "PSH" REG                          -> psh
+           | "PUL" REG                          -> pul
+           | "ROLC" REG ["," REG]               -> rolc
+           | "RORC" REG ["," REG]               -> rorc
+           | "RTS"                              -> rts
+           | "ST" REG "," location              -> std
+           | "ST" REG "," "X" "," SIGNED_INT    -> stx
+           | "ST" REG "," "SP" "," SIGNED_INT   -> stsp
+           | "SEC"                              -> sec
+           | "STOP"                             -> stop
+           | "XOR" REG "," REG "," REG          -> xor
+
+REG: "A" | "B" | "C" | "D" | "E" | "PAGE" | "X" | "SP"
+
+location: CNAME [SIGNED_INT] | INT | HEX
+definition: CNAME | INT | HEX | "\"" PRINTABLE "\""
+
+HEX: /0x[0-9a-fA-F]+/
+PRINTABLE: /[ -~]/
+
+%import common.INT
+%import common.SIGNED_INT
+%import common.HEXDIGIT
+%import common.ESCAPED_STRING
+%import common.CNAME
+%import common.WS
+%import common.WS_INLINE
+%ignore WS
