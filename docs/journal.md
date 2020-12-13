@@ -1,5 +1,17 @@
 # Journal / notes of what I have done
 
+## Fri, 11 Dec
+Considering adding a `CLR memory` so that can set a value directly in to memory instead of having to load a register first. This would be a store in direct addressing mode but instead of referencing a register those 3 bits would be a value (ie 0..7)
+
+## Tue, 8 Dec 2020: Restarting
+After a long lay-off from this project I have restarted it. Work, life and other projects got ahead of me. And I didn't have the energy to refactor the circuit again to build interrupt capability.
+
+I've simplified the mnemonic, and updated the [CPU manual](https://docs.google.com/spreadsheets/d/1R_vZknDr0SD-eCZZS5yPU8j0XcCEtsu2B878DS3oAyU/edit#gid=2004623121)
+
+- Added `CLR` instruction, which is a `LD Rd, 0`
+- `INC`, `DEC`, `NOT`, `RORC` and `ROLC` support single register, where source and destination is the same register
+- Simplified the load and store mnemonics to just `LD` and `ST`, using an X or SP to specify the addressing mode
+
 ## Sat, 28 Dec: Next steps
 
 ### Terminal emulator

@@ -67,10 +67,14 @@ def tokenise(line):
 
 def parse(tokens):
     """Find the opcode and operands, remove comments."""
-    opcode = tokens[0]
-    if tokens[-1][0] == ";":
-        tokens.pop(-1)
-    operands = tokens[1:]
+    try:
+        opcode = tokens[0]
+        if tokens[-1][0] == ";":
+            tokens.pop(-1)
+        operands = tokens[1:]
+    except IndexError:
+        print("Tokens:", tokens)
+        raise
     return opcode, operands
 
 
