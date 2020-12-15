@@ -1,16 +1,14 @@
 program: line+
 
-line: [macro | label | instruction] [comment] 
+line: [directive | label | instruction] [comment] "\n"
 
-comment: /;.*/
-
-macro: "."(reset | origin | define | data)
+directive: "."(reset | origin | define | data)
 reset: "reset" location
 origin: "origin" location
-define: "define" CNAME definition
-data: "data" CNAME INT ESCAPED_STRING?
+define: "define" SYMBOL (SYMBOL | literal)
+data: "data" SYMBOL (SYMBOL | literal) [ESCAPED_STRING]
 
-label: CNAME ":"
+label: SYMBOL ":"
 
 instruction: "ADC" REG "," REG "," REG          -> adc
            | "ADD" REG "," REG "," REG          -> add
@@ -26,7 +24,7 @@ instruction: "ADC" REG "," REG "," REG          -> adc
            | "CMP" REG "," REG                  -> cmp
            | "DEC" REG ["," REG]                -> dec
            | "INC" REG ["," REG]                -> inc
-           | "LD" REG "," "#" definition        -> ldi
+           | "LD" REG "," "#" literal           -> ldi
            | "LD" REG "," "&" location          -> ldi
            | "LD" REG "," location              -> ldd
            | "LD" REG "," "X" "," SIGNED_INT    -> ldx
@@ -46,19 +44,22 @@ instruction: "ADC" REG "," REG "," REG          -> adc
            | "STOP"                             -> stop
            | "XOR" REG "," REG "," REG          -> xor
 
-REG: "A" | "B" | "C" | "D" | "E" | "PAGE" | "X" | "SP"
+comment: COMMENT_STRING
+COMMENT_STRING: /;.*/
 
-location: CNAME [SIGNED_INT] | INT | HEX
-definition: CNAME | INT | HEX | "\"" PRINTABLE "\""
+location: (SYMBOL | literal) (SIGN (SYMBOL | literal))*
+?literal: INT | HEX | "\"" CHAR "\""
 
+SIGN: "+" | "-"
 HEX: /0x[0-9a-fA-F]+/
-PRINTABLE: /[ -~]/
+CHAR: /[ -~]/
+
+REG: "A" | "B" | "C" | "D" | "E" | "PAGE" | "X" | "SP"
 
 %import common.INT
 %import common.SIGNED_INT
 %import common.HEXDIGIT
 %import common.ESCAPED_STRING
-%import common.CNAME
-%import common.WS
+%import common.CNAME -> SYMBOL
 %import common.WS_INLINE
-%ignore WS
+%ignore WS_INLINE
