@@ -2,11 +2,13 @@ program: line+
 
 line: [directive | label | instruction] [comment] "\n"
 
-directive: "."(reset | origin | define | data)
+directive: "."(reset | origin | define | string | byte | array)
 reset: "reset" location
 origin: "origin" location
 define: "define" SYMBOL (SYMBOL | literal)
-data: "data" SYMBOL (SYMBOL | literal) [ESCAPED_STRING]
+string: "string" SYMBOL ESCAPED_STRING
+byte: "byte" SYMBOL (SYMBOL | literal)
+array: "array" SYMBOL (SYMBOL | literal)
 
 label: SYMBOL ":" [instruction]
 

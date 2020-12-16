@@ -33,4 +33,4 @@ Loop:
 
 ; Data in Page 1
 .origin 0x0100
-.data   fib     LENGTH
+.byte   fib     LENGTH
