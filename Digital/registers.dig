@@ -552,7 +552,7 @@ Write from data bus in to register.</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>~St</string>
+          <string>CMP</string>
         </entry>
       </elementAttributes>
       <pos x="180" y="60"/>
