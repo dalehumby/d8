@@ -451,7 +451,7 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>SUBC</string>
+          <string>SBB</string>
         </entry>
         <entry>
           <string>Bits</string>

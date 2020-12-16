@@ -8,7 +8,7 @@ origin: "origin" location
 define: "define" SYMBOL (SYMBOL | literal)
 data: "data" SYMBOL (SYMBOL | literal) [ESCAPED_STRING]
 
-label: SYMBOL ":"
+label: SYMBOL ":" [instruction]
 
 instruction: "ADC" REG "," REG "," REG          -> adc
            | "ADD" REG "," REG "," REG          -> add
@@ -30,6 +30,7 @@ instruction: "ADC" REG "," REG "," REG          -> adc
            | "LD" REG "," "X" "," SIGNED_INT    -> ldx
            | "LD" REG "," "SP" "," SIGNED_INT   -> ldsp
            | "MOV" REG "," REG                  -> mov
+           | "NOP"                              -> nop
            | "NOT" REG ["," REG]                -> not
            | "OR" REG "," REG "," REG           -> or
            | "PSH" REG                          -> psh
@@ -42,6 +43,7 @@ instruction: "ADC" REG "," REG "," REG          -> adc
            | "ST" REG "," "SP" "," SIGNED_INT   -> stsp
            | "SEC"                              -> sec
            | "STOP"                             -> stop
+           | "SBB" REG "," REG "," REG          -> sbb
            | "XOR" REG "," REG "," REG          -> xor
 
 comment: COMMENT_STRING
