@@ -7,8 +7,8 @@ reset: "reset" location
 origin: "origin" location
 define: "define" SYMBOL (SYMBOL | literal)
 string: "string" SYMBOL ESCAPED_STRING
-byte: "byte" SYMBOL (SYMBOL | literal)
-array: "array" SYMBOL (SYMBOL | literal)
+byte: "byte" SYMBOL count
+array: "array" SYMBOL "{" literal ("," literal)* "}"
 
 label: SYMBOL ":" [instruction]
 
@@ -52,6 +52,7 @@ comment: COMMENT_STRING
 COMMENT_STRING: /;.*/
 
 location: (SYMBOL | literal) (SIGN (SYMBOL | literal))*
+count: (SYMBOL | literal) (SIGN (SYMBOL | literal))*
 ?literal: INT | HEX | "\"" CHAR "\""
 
 SIGN: "+" | "-"
