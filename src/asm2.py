@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from lark import Lark
 
@@ -226,7 +227,7 @@ def build_d8_file(source_filename, symbols, memory):
             raise Exception(f"Unknown type {line['type']}")
 
     # Write the .d8 file
-    outfile = source_filename.rsplit(".")[0] + ".d8"
+    outfile = os.path.splitext(source_filename)[0] + ".d8"
     with open(outfile, "w") as f:
         f.writelines(map(lambda s: s + "\n", outlines))
 
