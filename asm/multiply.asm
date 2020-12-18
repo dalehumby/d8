@@ -57,13 +57,13 @@ NextBitSP:
     ST      D, SP, 3    ; Store high byte
 
 RotateABSP:
-    ROLC    B, B        ; Always rotate A:B
-    ROLC    A, A        ; Shift the MSB of B in to A
+    ROLC    B           ; Always rotate A:B
+    ROLC    A           ; Shift the MSB of B in to A
     BRA     NextBitSP
 DoneSP:
     RTS
 
-.data  multiply 2      ; Declare variable for multiplication
+.byte  multiply 2      ; Declare variable for multiplication
 MultiplyPtr_Sub:
     ; [X:X+1] = [X] * [X+1]
 	; Use A:B as the shift left register and C as the shift right register; store partial sum in X:X+1
