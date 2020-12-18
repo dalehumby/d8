@@ -1,14 +1,11 @@
 # D8 Emulator
-
+import os
 import re
 from textwrap import wrap
 
-from asm import instruction
-from asm import register as map_reg_num
+from d8 import instruction
+from d8 import register as map_reg_num
 
-map_reg_num = {
-    key.upper(): value for key, value in map_reg_num.items()
-}  # uppercase the keys
 map_num_reg = {
     value: key.upper() for key, value in map_reg_num.items()
 }  # invert the dictionary
@@ -91,7 +88,9 @@ class Emulator:
         Load the original source .asm file
         Returns a list of lines that you can index in to
         """
-        filename = filename.split(".")[0] + ".asm"
+        filename = (
+            os.path.splitext(filename)[0] + ".asm"
+        )  # TODO should get this from the header in .d8 file
         with open(filename, "r") as f:
             lines = f.readlines()
         lines = [line.rstrip() for line in lines]
@@ -204,8 +203,6 @@ class Emulator:
 
     def _execute(self, opc, opr):
         """Execute the current opcode."""
-        # print(f'Execute: {opc}\t 0b{opr:011b}({opr})')
-
         if opc == "stop":
             self.status["stop"] = True
         elif opc == "ldi":
@@ -258,7 +255,7 @@ class Emulator:
             ) + offset
             self.memory[address] = data
             # print(f'memory[{address}]<-{data}<-{map_num_reg[Rs]}')
-        elif opc == "mov":
+        elif opc in ["mov", "nop"]:
             Rd, Rs = self._get_reg_reg(opr)
             data = self.registers[Rs]
             self.registers[Rd] = data
@@ -309,6 +306,7 @@ class Emulator:
             "add",
             "adc",
             "inc",
+            "sbb",
             "dec",
             "and",
             "or",
@@ -341,7 +339,7 @@ class Emulator:
         else:
             # print(self.status)
             # print(self.registers)
-            raise Exception("Unrecognised opcode {opc}")
+            raise Exception(f"Unrecognised opcode: {opc} opr: 0b{opr:011b} ({opr})")
 
     def _alu(self, opcode, operands):
         """Emulate the ALU execution cycles."""
@@ -353,23 +351,38 @@ class Emulator:
             Rd &= 0xFF  # Ensure result in range 0 to 0xFF
             return Rd, carry
 
+        def _sub_with_borrow(Rs1, Rs2, carry):
+            """Implement subtract."""
+            Rd = Rs1 - Rs2 - carry
+            carry = Rd < 0
+            Rd = int(
+                bin(Rd & 0b11111111), 2
+            )  # Convert negative number to 2's complement
+            return Rd, carry
+
         Rd, Rs1, Rs2 = self._get_reg_reg_reg(operands)
 
         if opcode == "add":
             data, self.status["carry"] = _full_add(
                 self.registers[Rs1], self.registers[Rs2], 0
             )
-        elif opcode == "adc":
+        elif opcode in ["adc", "rolc"]:
             data, self.status["carry"] = _full_add(
                 self.registers[Rs1], self.registers[Rs2], self.status["carry"]
             )
         elif opcode == "inc":
             data, self.status["carry"] = _full_add(self.registers[Rs1], 0, 1)
+        elif opcode == "sbb":
+            # If bit 7 in IR (CMP flag) is set then force carry to 0
+            if operands & 0b10000000:
+                carry = 0
+            else:
+                carry = self.status["carry"]
+            data, self.status["carry"] = _sub_with_borrow(
+                self.registers[Rs1], self.registers[Rs2], carry
+            )
         elif opcode == "dec":
-            data, self.status["carry"] = _full_add(self.registers[Rs1], 0xFF, 0)
-            self.status["carry"] = not self.status[
-                "carry"
-            ]  # for a dec, the carry logic is inverted, so carry means borrow here
+            data, self.status["carry"] = _sub_with_borrow(self.registers[Rs1], 0, 1)
         elif opcode == "and":
             data = self.registers[Rs1] & self.registers[Rs2]
             self.status["carry"] = 0
@@ -382,11 +395,6 @@ class Emulator:
         elif opcode == "not":
             data = ~self.registers[Rs1]
             self.status["carry"] = 0
-        elif opcode == "rolc":
-            # Rotate left through carry
-            data = (self.registers[Rs1] << 1) + self.status["carry"]
-            self.status["carry"] = data > 0xFF
-            data &= 0xFF
         elif opcode == "rorc":
             # Rotate right through carry
             data = int(self.status["carry"]) << 8
@@ -399,7 +407,7 @@ class Emulator:
         # Set the status bits
         self.status["zero"] = data == 0
 
-        # If bit 7 in IR is clear then save the result
+        # If bit 7 in IR (CMP flag) is clear then save the result
         if operands & 0b10000000 == 0:
             self.registers[Rd] = data
 
