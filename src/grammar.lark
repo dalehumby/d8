@@ -51,6 +51,7 @@ instruction: "ADC" REG "," REG "," REG          -> adc
 comment: COMMENT_STRING
 COMMENT_STRING: /;.*/
 
+// TODO Make this `expression` to evaluate math expressions. Then dont need location and count
 location: (SYMBOL | literal) (SIGN (SYMBOL | literal))*
 count: (SYMBOL | literal) (SIGN (SYMBOL | literal))*
 ?literal: INT | HEX | "\"" CHAR "\""

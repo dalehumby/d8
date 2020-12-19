@@ -1,3 +1,21 @@
+"""
+Assembler for the D8 CPU
+
+Usage:
+    $ python asm.py file.asm
+
+This generates
+- file.d8
+- file.hex
+in the same folder as file.asm
+
+.asm files need to conform to the grammar as defined in grammar.lark
+
+Once assembled, the d8 file can be used by emulate.py to run the emulator, of
+in GUI mode using gui.py
+
+The hex file can be loaded in to the CPU simulator's RAM for execution.
+"""
 import argparse
 import os
 
@@ -92,7 +110,6 @@ class MemoryMap:
     def set_reset(self, location):
         """Set the reset location."""
         self.add_instruction(0, "bra", [location], location.meta.line)
-        self.address += 2
 
     def add_instruction(self, address, op, opr, line_number):
         self.memory[address] = {
@@ -198,6 +215,20 @@ def resolve_instruction(instruction, memory):
     )
 
 
+def build_symbols_memory(source_tree, symbols, memory):
+    """Walks the parsed source tree, adding symbols and memory as you go."""
+    for line in source_tree.children:
+        for item in line.children:
+            if item.data == "comment":
+                pass
+            elif item.data == "directive":
+                resolve_directive(item.children[0], symbols, memory)
+            elif item.data == "label":
+                resolve_label(item.children[0], symbols, memory)
+            else:
+                resolve_instruction(item, memory)
+
+
 def build_d8_file(source_filename, symbols, memory):
     """Write the d8 file with the machine instructions and debug info."""
     outlines = []
@@ -249,16 +280,7 @@ if __name__ == "__main__":
     memory = MemoryMap()
 
     # First pass, iterate over file building symbol table and memory map
-    for line in source_tree.children:
-        for item in line.children:
-            if item.data == "comment":
-                pass
-            elif item.data == "directive":
-                resolve_directive(item.children[0], symbols, memory)
-            elif item.data == "label":
-                resolve_label(item.children[0], symbols, memory)
-            else:
-                resolve_instruction(item, memory)
+    build_symbols_memory(source_tree, symbols, memory)
 
     print("Symbols:\n", symbols.get_all(), "\n")
     print("Memory map:\n", memory.get_all(), "\n")
