@@ -1,13 +1,23 @@
 ; Test the assembler, grammar and parsers by assembling each instruciton
-; *** This program is not supposed to execute ***
+; >>> This program is not supposed to execute <<<
+;*******************************************************************************************
+; STYLE GUIDE
+; DEFINES, MACROS and ASSEMBLER OPCODES (LD)
+; , space; space around +-*/
+; Jump points are PascalCase: MainLoop
+; Tabs are four spaces, and tabs are converted to spaces. Trailing whitespace should be removed
+; Subroutines are PascalCase with _Sub postfix: StreamBytes_Sub
+; Variables are camelCase: dataBufferAddress
+; Opcode in col 5, operands in col 13 and 25, comments col 41 (or at least aligned in that block of code.)
+;*******************************************************************************************
 
-.define     LENGTH      10
+.define     LENGTH      10              ; This is an inline comment
 .define     WIDTH       LENGTH
 .define     TOPSTACK    0xFF
 
 .reset      Start
 .byte       key         1
-
+            
 .origin     TOPSTACK+1
 Start:
     ; Loads
