@@ -1,5 +1,27 @@
 # Journal / notes of what I have done
 
+## Sun, 20 Dec: Expressions
+Assembler now supports maths expressions, such as `LENGTH + 1`, or more complex expressions like `"A" * 2 + (3 + 0x0F)`
+
+All places that used to use integer, signed integer, count, location, etc., now all support an `expression`. This has simplified the grammar as well as the assembler implementation and gives more flexibility when writing assembly code. 
+
+## Sat, 19 Dec: Tests
+Wrote unit tests for assembler.
+
+## Fri, 18 Dec
+Wrote 'to lower' assembly code to take an UPPERCASE string and turn in to lower case string. I couldn't do this with the previous version of the assembler, and updating the v1 assembler was too messy, so this is what incentivised me to rewrite it.
+
+## Thur, 17 Dec (and before)
+Rewrote the assembler v1 hacky code to a v2, slightly less hacky code, but more importantly the v2 assembler uses [Python Lark](https://github.com/lark-parser/lark) parsing toolkit, which takes in an extended Backus–Naur form (EBNF) and returns an abstract syntax tree (AST). I was able to remove all of my parsing code, and focus the assembler on handling the tree, mostly resolving symbols and keeping track of memory (1st pass), and then turning the memory map in to machine code (2nd pass.)
+
+Also added some pseudo-instructions such as
+- CLR (load 0 in to register)
+- NOP (Move register A to A)
+
+and added Subtract with borrow (SBB). I then changed the compare (CMP) opcode to reuse the SBB, so now compare with test equivalency (zero flag) as well as whether the 2nd register is larger than the first (which causes a borrow, so C flag is set.) Updated the emulator and digital simulator to handle this.
+
+Removed the Rotate Left through Carry (ROLC) instruction and turned in to pseado-opcode reusing ADD, based on a rotate left is the same as adding the number to itself. So even though I used another opcode for subtract, I still have 2 opcode remaining. Might need to use it for interrupt handling.
+
 ## Fri, 11 Dec
 Considering adding a `CLR memory` so that can set a value directly in to memory instead of having to load a register first. This would be a store in direct addressing mode but instead of referencing a register those 3 bits would be a value (ie 0..7)
 

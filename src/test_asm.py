@@ -12,9 +12,11 @@ grammar = asm.load_grammar("grammar.lark")
 
 
 class TestLoadGrammar(unittest.TestCase):
-    def test_load_grammar(self):
-        """Test importing the grammar and parsing an empty program."""
-        _ = grammar.parse("; This is a comment\n")
+    def test_grammar(self):
+        """Test parsing test.asm. Should not rise exception."""
+        with open("test.asm", "r") as f:
+            source = f.read()
+        _ = grammar.parse(source)
 
 
 class TestSymbolTable(unittest.TestCase):
@@ -37,37 +39,41 @@ class TestSymbolTable(unittest.TestCase):
         symbols.add("var2", 10)
         self.assertEqual(symbols.get_all(), {"var1": 5, "var2": 10})
 
-    def test_resolve(self):
+    def test_resolve_expression_simple(self):
         symbols = asm.SymbolTable()
-        self.assertEqual(symbols.resolve(1), 1)
 
         p = grammar.parse(".define LENGTH 10\n")
-        token = p.children[0].children[0].children[0].children[1]
-        self.assertEqual(symbols.resolve(token), 10)
-
-        p = grammar.parse("LD A, X, -3\n")
-        token = p.children[0].children[0].children[1]
-        self.assertEqual(symbols.resolve(token), -3)
+        tree = p.children[0].children[0].children[0].children[1]
+        self.assertEqual(symbols.resolve_expression(tree), 10)
 
         p = grammar.parse(".define LENGTH 0x0F\n")
-        token = p.children[0].children[0].children[0].children[1]
-        self.assertEqual(symbols.resolve(token), 15)
+        tree = p.children[0].children[0].children[0].children[1]
+        self.assertEqual(symbols.resolve_expression(tree), 15)
 
         p = grammar.parse(".define LENGTH 10\n.define WIDTH LENGTH\n")
         symbols.add("length", 10)
-        token = p.children[1].children[0].children[0].children[1]
-        self.assertEqual(symbols.resolve(token), 10)
+        tree = p.children[1].children[0].children[0].children[1]
+        self.assertEqual(symbols.resolve_expression(tree), 10)
 
         p = grammar.parse('.define LENGTH "A"\n')
-        token = p.children[0].children[0].children[0].children[1]
-        self.assertEqual(symbols.resolve(token), 65)
+        tree = p.children[0].children[0].children[0].children[1]
+        self.assertEqual(symbols.resolve_expression(tree), 65)
 
-    def test_to_value(self):
+        p = grammar.parse("LD A, X, -3\n")
+        tree = p.children[0].children[0].children[1]
+        self.assertEqual(symbols.resolve_expression(tree), -3)
+
+    def test_resolve_expression_advanced(self):
         symbols = asm.SymbolTable()
         symbols.add("LENGTH", 10)
+
         p = grammar.parse(".byte myvar LENGTH+1\n")
-        tokens = p.children[0].children[0].children[0].children[1].children
-        self.assertEqual(symbols.to_value(tokens), 11)
+        tree = p.children[0].children[0].children[0].children[1]
+        self.assertEqual(symbols.resolve_expression(tree), 11)
+
+        p = grammar.parse('BRA 0x0F * 2 + ("A" + 5) - LENGTH\n')
+        tree = p.children[0].children[0].children[0]
+        self.assertEqual(symbols.resolve_expression(tree), 90)
 
 
 class TestMemoryMap(unittest.TestCase):

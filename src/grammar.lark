@@ -1,36 +1,39 @@
+// EBNF Grammar for D8 assembly files
+// Python Lark: https://github.com/lark-parser/lark
+
 program: line+
 
 line: [directive | label | instruction] [comment] "\n"
 
 directive: "."(reset | origin | define | string | byte | array)
-reset: "reset" location
-origin: "origin" location
-define: "define" SYMBOL (SYMBOL | literal)
+reset: "reset" expression
+origin: "origin" expression
+define: "define" SYMBOL expression
 string: "string" SYMBOL ESCAPED_STRING
-byte: "byte" SYMBOL count
-array: "array" SYMBOL "{" literal ("," literal)* "}"
+byte: "byte" SYMBOL expression
+array: "array" SYMBOL "{" expression ("," expression)* "}"
 
 label: SYMBOL ":" [instruction]
 
 instruction: "ADC" REG "," REG "," REG          -> adc
            | "ADD" REG "," REG "," REG          -> add
            | "AND" REG "," REG "," REG          -> and
-           | "BCC" location                     -> bcc
-           | "BCS" location                     -> bcs
-           | "BEQ" location                     -> beq
-           | "BNE" location                     -> bne
-           | "BRA" location                     -> bra
-           | "BSR" location                     -> bsr
+           | "BCC" expression                   -> bcc
+           | "BCS" expression                   -> bcs
+           | "BEQ" expression                   -> beq
+           | "BNE" expression                   -> bne
+           | "BRA" expression                   -> bra
+           | "BSR" expression                   -> bsr
            | "CLC"                              -> clc 
            | "CLR" REG                          -> clr
            | "CMP" REG "," REG                  -> cmp
            | "DEC" REG ["," REG]                -> dec
            | "INC" REG ["," REG]                -> inc
-           | "LD" REG "," "#" literal           -> ldi
-           | "LD" REG "," "&" location          -> ldi
-           | "LD" REG "," location              -> ldd
-           | "LD" REG "," "X" "," SIGNED_INT    -> ldx
-           | "LD" REG "," "SP" "," SIGNED_INT   -> ldsp
+           | "LD" REG "," "#" expression        -> ldi
+           | "LD" REG "," "&" expression        -> ldi
+           | "LD" REG "," expression            -> ldd
+           | "LD" REG "," "X" "," expression    -> ldx
+           | "LD" REG "," "SP" "," expression   -> ldsp
            | "MOV" REG "," REG                  -> mov
            | "NOP"                              -> nop
            | "NOT" REG ["," REG]                -> not
@@ -40,9 +43,9 @@ instruction: "ADC" REG "," REG "," REG          -> adc
            | "ROLC" REG ["," REG]               -> rolc
            | "RORC" REG ["," REG]               -> rorc
            | "RTS"                              -> rts
-           | "ST" REG "," location              -> std
-           | "ST" REG "," "X" "," SIGNED_INT    -> stx
-           | "ST" REG "," "SP" "," SIGNED_INT   -> stsp
+           | "ST" REG "," expression            -> std
+           | "ST" REG "," "X" "," expression    -> stx
+           | "ST" REG "," "SP" "," expression   -> stsp
            | "SEC"                              -> sec
            | "STOP"                             -> stop
            | "SBB" REG "," REG "," REG          -> sbb
@@ -51,19 +54,29 @@ instruction: "ADC" REG "," REG "," REG          -> adc
 comment: COMMENT_STRING
 COMMENT_STRING: /;.*/
 
-// TODO Make this `expression` to evaluate math expressions. Then dont need location and count
-location: (SYMBOL | literal) (SIGN (SYMBOL | literal))*
-count: (SYMBOL | literal) (SIGN (SYMBOL | literal))*
-?literal: INT | HEX | "\"" CHAR "\""
+?expression: product
+    | expression "+" product -> add
+    | expression "-" product -> sub
 
-SIGN: "+" | "-"
+?product: atom
+    | product "*" product -> mul
+    | product "/" product -> div
+
+?atom: literal
+    | "-" atom  -> neg
+    | SYMBOL -> symbol
+    | "(" expression ")"
+
+?literal: INT -> integer
+    | HEX -> hex
+    | "\"" CHAR "\"" -> char
+
 HEX: /0x[0-9a-fA-F]+/
 CHAR: /[ -~]/
 
 REG: "A" | "B" | "C" | "D" | "E" | "PAGE" | "X" | "SP"
 
 %import common.INT
-%import common.SIGNED_INT
 %import common.HEXDIGIT
 %import common.ESCAPED_STRING
 %import common.CNAME -> SYMBOL

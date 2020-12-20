@@ -19,7 +19,7 @@ The hex file can be loaded in to the CPU simulator's RAM for execution.
 import argparse
 import os
 
-from lark import Lark
+from lark import Lark, Transformer, v_args
 
 from d8 import Machine
 
@@ -52,48 +52,42 @@ class SymbolTable:
         """Get a specific key from the table."""
         return self.symbol_table[key.lower()]
 
-    def resolve(self, token):
+    @v_args(inline=True)  # Affects the signatures of the methods
+    class EvalExpressions(Transformer):
         """
-        Resolve the identifier in to an integer.
+        Using Lark's Transformer method we can write a transformer for each subtree
+        to evaluate our expressions. We also use Python's built in operators for
+        doing the maths, and write our own to transform eg hex in to an int.
 
-        Assumes that if the type is SYMBOL then it is already in symbol table
+        Ref https://lark-parser.readthedocs.io/en/latest/visitors.html#transformer
         """
-        if isinstance(token, int):
-            return token
-        elif token.type == "SYMBOL":
-            try:
-                return self.get(token)
-            except KeyError:
-                print(
-                    f"Undefined symbol {token} at position {token.line}:{token.column}"
-                )
-                raise
-        elif token.type in ["INT", "SIGNED_INT"]:
-            return int(token)
-        elif token.type == "HEX":
-            return int(token, 16)
-        elif token.type == "CHAR":
-            return ord(token)
-        else:
-            raise Exception(
-                f"Cannot resolve definition for type {token.type} at position {token:line}:{token:column}"
-            )
 
-    def to_value(self, tokens):
-        """
-        Resolve to a value by recursivley resolving each token.
+        from operator import add, mul, neg, sub
+        from operator import truediv as div
 
-        TODO: Turn this in to a propper calculator with +-*/
-              https://github.com/lark-parser/lark/blob/master/examples/calc.py
-        """
-        address = 0
-        sign = 1
-        for token in tokens:
-            if token.type == "SIGN":
-                sign = int(token + "1")  # This is terrible but works
-            else:
-                address += sign * self.resolve(token)
-        return address
+        def __init__(self, get_symbol):
+            self.get_symbol = get_symbol
+
+        def integer(self, value):
+            return int(value)
+
+        def hex(self, value):
+            return int(value, 16)
+
+        def char(self, value):
+            return ord(value)
+
+        def symbol(self, name):
+            return self.get_symbol(name)
+
+    def resolve_expression(self, tree):
+        """Take a math expression and resolve it to an int value."""
+        answer = self.EvalExpressions(self.get).transform(tree)
+        try:
+            return int(answer.children[0])
+        except AttributeError:
+            # If answer is not a tree then it's a token
+            return int(answer)
 
 
 class MemoryMap:
@@ -145,7 +139,7 @@ def resolve_directive(node, symbols, memory):
         location = resolve_reset(node.children)
         memory.set_reset(location)
     elif node.data == "origin":
-        address = resolve_origin(node.children, symbols)
+        address = resolve_origin(node, symbols)
         memory.set_origin(address)
     elif node.data == "define":
         resolve_define(node.children, symbols)
@@ -156,25 +150,27 @@ def resolve_directive(node, symbols, memory):
     elif node.data == "array":
         # TODO
         raise NotImplementedError
+    else:
+        raise NotImplementedError
 
 
 def resolve_reset(tokens):
     """Resolve the reset to an location, but dont resolve the location to an address yet."""
     tree = tokens[0]
-    if tree.data != "location":
+    if tree.data != "symbol":
         raise Exception("Unknown reset type", tree.data)
     return tree
 
 
-def resolve_origin(tokens, symbols):
+def resolve_origin(node, symbols):
     """Resolve the address of the origin."""
-    return symbols.to_value(tokens[0].children)
+    return symbols.resolve_expression(node)
 
 
 def resolve_define(tokens, symbols):
     """Add the symbol and value that has been defined to the symbol table."""
     symbol = tokens[0]
-    value = symbols.resolve(tokens[1])
+    value = symbols.resolve_expression(tokens[1])
     symbols.add(symbol, value)
 
 
@@ -190,7 +186,7 @@ def resolve_string(tokens, symbols, memory):
 
 def resolve_byte(tokens, symbols, memory):
     symbol = tokens[0]
-    byte_count = symbols.to_value(tokens[1].children)
+    byte_count = symbols.resolve_expression(tokens[1])
     value = [0] * byte_count  # init all bytes to 0
     address = memory.get_address()
     symbols.add(symbol, address)

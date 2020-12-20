@@ -1,6 +1,7 @@
 """
 D8 Machine Instruction
 """
+from lark import Token, Tree
 
 register = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "PAGE": 5, "X": 6, "SP": 7}
 
@@ -39,6 +40,11 @@ instruction = {
     "psh": 29,
     "pul": 30,
 }
+
+
+# The symbol table expression resolver expects a Tree not an int
+ZERO = Tree("integer", [Token("INT", "0")])
+ONE = Tree("integer", [Token("INT", "1")])
 
 
 class Machine:
@@ -83,13 +89,13 @@ class Machine:
         elif opcode == "rts":
             # For RTS, the register is ignored, so set to a;
             # and opr8s points to location SP+1 because the SP dec only happens after a pull
-            return self.op_reg_opr8s(opcode, "A", 1)
+            return self.op_reg_opr8s(opcode, "A", ONE)
         elif opcode == "psh":
             # opr8 is 0 because no SP offset
-            return self.op_reg_opr8s(opcode, operands[0], 0)
+            return self.op_reg_opr8s(opcode, operands[0], ZERO)
         elif opcode == "pul":
             # opr8 points to location SP+1 because the SP dec only happens after a pull
-            return self.op_reg_opr8s(opcode, operands[0], 1)
+            return self.op_reg_opr8s(opcode, operands[0], ONE)
         elif opcode == "cmp":
             # A compare is the same as an SBB, but in this case we discard the result
             return self.op_reg_reg_reg(
@@ -97,7 +103,7 @@ class Machine:
             )
         elif opcode == "clr":
             # Load regiser with 0
-            return self.op_reg_opr8s(opcode, operands[0], 0)
+            return self.op_reg_opr8s(opcode, operands[0], ZERO)
         elif opcode in ["rolc"]:
             # Rotate left through carry is the same as REG + REG + Carry
             if len(operands) == 1:
@@ -131,15 +137,12 @@ class Machine:
               Programmer must use PAGE register to change high byte
         """
         # If not a token (symbol) then try tree (location)
-        try:
-            opr8u = self.symbol_table.resolve(opr8u) % 256
-        except AttributeError:
-            opr8u = self.symbol_table.to_value(opr8u.children) % 256
+        opr8u = self.symbol_table.resolve_expression(opr8u) % 256
         return instruction[opcode] << 11 | register[R] << 8 | opr8u
 
     def op_reg_opr8s(self, opcode, R, offset):
         """Resolve symbol or number to an 8-bit signed operand."""
-        offset = self.symbol_table.resolve(offset)
+        offset = self.symbol_table.resolve_expression(offset)
         if offset < -128 or offset > 127:
             raise Exception(f"Offset {offset} must be in range -128 to +127")
         if offset < 0:
@@ -151,7 +154,7 @@ class Machine:
 
     def op_opr11s(self, PC, opcode, location):
         """Given an opcode and location symbols, calculate the relative offset address."""
-        address = self.symbol_table.to_value(location.children)
+        address = self.symbol_table.resolve_expression(location)
         offset = address - PC
         if offset < -1024 or offset > 1023:
             raise Exception(
