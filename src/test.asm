@@ -1,5 +1,5 @@
 ; Test the assembler, grammar and parsers by assembling each instruciton
-; >>> This program is not supposed to execute <<<
+; >>> This program is supposed to assemble but is not designed to execute <<<
 ;*******************************************************************************************
 ; STYLE GUIDE
 ; DEFINES, MACROS and ASSEMBLER OPCODES (LD)
@@ -14,6 +14,7 @@
 .define     LENGTH      10              ; This is an inline comment
 .define     WIDTH       LENGTH
 .define     TOPSTACK    0xFF
+.define     EXPRESSION  1 + 2 * (-3 + 4) / "A"
 
 .reset      Start
 .byte       key         1

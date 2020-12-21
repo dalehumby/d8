@@ -26,7 +26,7 @@ Start:
     ST      A, multiply
     LD      A, #0xFF
     ST      A, multiply+1
-    LD      X, &multiply     ; load X with the pointer in memory for what want to multiply  <-- check this: Was LDI
+    LD      X, &multiply     ; load X with the pointer in memory for what want to multiply
     BSR     MultiplyPtr_Sub
 
     STOP

@@ -29,4 +29,4 @@ Next:
 End:
     STOP
 
-.data       helloStr     10 "hello"
+.string       helloStr     "hello"

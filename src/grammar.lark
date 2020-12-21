@@ -55,21 +55,21 @@ comment: COMMENT_STRING
 COMMENT_STRING: /;.*/
 
 ?expression: product
-    | expression "+" product -> add
-    | expression "-" product -> sub
+    | expression "+" product    -> add
+    | expression "-" product    -> sub
 
 ?product: atom
-    | product "*" product -> mul
-    | product "/" product -> div
+    | product "*" product       -> mul
+    | product "/" product       -> div
 
 ?atom: literal
-    | "-" atom  -> neg
-    | SYMBOL -> symbol
+    | "-" atom                  -> neg
+    | SYMBOL                    -> symbol
     | "(" expression ")"
 
-?literal: INT -> integer
-    | HEX -> hex
-    | "\"" CHAR "\"" -> char
+?literal: INT                   -> integer
+    | HEX                       -> hex
+    | "\"" CHAR "\""            -> char
 
 HEX: /0x[0-9a-fA-F]+/
 CHAR: /[ -~]/
@@ -77,8 +77,7 @@ CHAR: /[ -~]/
 REG: "A" | "B" | "C" | "D" | "E" | "PAGE" | "X" | "SP"
 
 %import common.INT
-%import common.HEXDIGIT
 %import common.ESCAPED_STRING
-%import common.CNAME -> SYMBOL
+%import common.CNAME            -> SYMBOL
 %import common.WS_INLINE
 %ignore WS_INLINE
