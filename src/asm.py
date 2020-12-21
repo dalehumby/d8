@@ -21,6 +21,7 @@ import argparse
 import os
 
 from lark import Lark, Transformer, UnexpectedCharacters, v_args
+from lark.exceptions import VisitError
 
 from d8 import Machine
 
@@ -50,7 +51,11 @@ class SymbolTable:
         return self.symbol_table
 
     def get(self, key):
-        """Get a specific key from the table."""
+        """
+        Get a specific key from the table.
+        NOTE: Don't catch the KeyError here, catch elsewhere where there is
+              more contect eg line numbers
+        """
         return self.symbol_table[key.lower()]
 
     @v_args(inline=True)  # Affects the signatures of the methods
@@ -83,7 +88,11 @@ class SymbolTable:
 
     def resolve_expression(self, tree):
         """Take a math expression and resolve it to an int value."""
-        answer = self.EvalExpressions(self.get).transform(tree)
+        try:
+            answer = self.EvalExpressions(self.get).transform(tree)
+        except VisitError as e:
+            print(f"Undefined symbol {e.orig_exc} on line {tree.meta.line}")
+            exit(-1)
         try:
             return int(answer.children[0])
         except AttributeError:
@@ -149,8 +158,7 @@ def resolve_directive(node, symbols, memory):
     elif node.data == "byte":
         resolve_byte(node.children, symbols, memory)
     elif node.data == "array":
-        # TODO
-        raise NotImplementedError
+        resolve_array(node.children, symbols, memory)
     else:
         raise NotImplementedError
 
@@ -186,6 +194,7 @@ def resolve_string(tokens, symbols, memory):
 
 
 def resolve_byte(tokens, symbols, memory):
+    """Declare the variable and initialise memory to 0x00."""
     symbol = tokens[0]
     byte_count = symbols.resolve_expression(tokens[1])
     value = [0] * byte_count  # init all bytes to 0
