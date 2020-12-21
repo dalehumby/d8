@@ -2,5 +2,5 @@ env/*
 __pycache__/*
 .DS_Store
 *.pyc
-asm/*.hex
-asm/*.d8
+*.hex
+*.d8
