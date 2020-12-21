@@ -194,7 +194,13 @@ def resolve_byte(tokens, symbols, memory):
     memory.add_variable(address, symbol, value, symbol.line)
 
 
-# TODO array
+def resolve_array(tokens, symbols, memory):
+    """Declare the variable and define each element in the array to initialise memory."""
+    symbol = tokens[0]
+    values = [symbols.resolve_expression(element) for element in tokens[1:]]
+    address = memory.get_address()
+    symbols.add(symbol, address)
+    memory.add_variable(address, symbol, values, symbol.line)
 
 
 def resolve_label(token, symbols, memory):
