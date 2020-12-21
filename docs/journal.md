@@ -1,5 +1,10 @@
 # Journal / notes of what I have done
 
+## Mon, 21 Dec
+Implemented bubble sort, works nicely enough. No attempt to optimise.
+
+For that also implemented the array type. Would be nice if I could use `sizeof` in an expression, and the grammar and expression handler is easy. The challenge is getting the length of the array, because the expression only has access to the symbol table and not the memory map. Need to think about this before adding the memory map everywhere.
+
 ## Sun, 20 Dec: Expressions and Syntax Highlighting
 Assembler now supports maths expressions, such as `LENGTH + 1`, or more complex expressions like `"A" * 2 + (3 + 0x0F)`
 
