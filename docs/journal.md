@@ -1,9 +1,22 @@
 # Journal / notes of what I have done
 
-## Sun, 20 Dec: Expressions
+## Sun, 20 Dec: Expressions and Syntax Highlighting
 Assembler now supports maths expressions, such as `LENGTH + 1`, or more complex expressions like `"A" * 2 + (3 + 0x0F)`
 
 All places that used to use integer, signed integer, count, location, etc., now all support an `expression`. This has simplified the grammar as well as the assembler implementation and gives more flexibility when writing assembly code. 
+
+Also created a syntax highlighting file and [vim-d8]() repo so that a Vim plugin manager can install the plugin. Am also considering writing a syntastic Vim file so that I can get syntax errors when writing assembler. Some useful resources:
+- https://github.com/vim-syntastic/syntastic/wiki/Syntax-Checker-Guide#external
+- https://github.com/rust-lang/rust.vim/blob/master/syntax_checkers/rust/rustc.vim
+
+Assuming I get the vim file format correct, I'd need to get Syntastic to launch my assembler in check mode. Given this is a Python program there is bound to be a lot of fiddling getting the assembler on to the path, the lark packages installed... yay, Python on MacOS.
+
+Add #! python3...
+Make executable
+```
+~/.bashrc
+export PATH=$PATH:/Users/dalehumby/Documents/GitHub/d8/src/
+```
 
 ## Sat, 19 Dec: Tests
 Wrote unit tests for assembler.

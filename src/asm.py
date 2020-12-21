@@ -1,3 +1,4 @@
+#!/usr/local/bin/python3
 """
 Assembler for the D8 CPU
 
@@ -19,7 +20,7 @@ The hex file can be loaded in to the CPU simulator's RAM for execution.
 import argparse
 import os
 
-from lark import Lark, Transformer, v_args
+from lark import Lark, Transformer, UnexpectedCharacters, v_args
 
 from d8 import Machine
 
@@ -262,12 +263,23 @@ def build_d8_file(source_filename, symbols, memory):
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description="Assembler for the D8 CPU")
     argparser.add_argument("source", help="Input file to assemble")
+    argparser.add_argument(
+        "--check", action="store_true", help="Only check the syntax, don't assemble"
+    )
     args = argparser.parse_args()
     source_filename = args.source
+    check_syntax = args.check
     with open(source_filename, "r") as f:
         raw_source = f.read()
     asmparser = load_grammar("grammar.lark")
-    source_tree = asmparser.parse(raw_source)
+    try:
+        source_tree = asmparser.parse(raw_source)
+    except UnexpectedCharacters as e:
+        print(e)
+        exit(-1)
+
+    if check_syntax:
+        exit()
 
     print(source_tree.pretty(), "\n")
     print(source_tree, "\n")
