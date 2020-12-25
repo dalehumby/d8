@@ -16,6 +16,42 @@ instruction_map = {value: key for key, value in instruction.items()}
 periph_map = {"SPPS": 2, "TERM": 3, "KBD": 4}
 
 
+def term(transmit):
+    """Terminal (screen) peripheral handler."""
+    print(f"Tx: {transmit}")
+
+
+def keyboard(receive):
+    """Keyboard peripheral handler."""
+    print(f"Rx: {receive}")
+
+
+periph_handlers = {periph_map["TERM"]: term, periph_map["KBD"]: keyboard}
+
+
+class Memory(dict):
+    """Read and write to memory, calling out to memory mapped peripherals as needed."""
+
+    def __init__(self, peripherals=None):
+        """Initialise an empty memory."""
+        dict.__init__(self, {})
+        self.peripherals = peripherals
+
+    def __getitem__(self, address):
+        data = dict.__getitem__(self, address)
+        return data
+
+    def __setitem__(self, address, data):
+        if not isinstance(address, int) or address < 0 or address > 65535:
+            raise KeyError(
+                f"Memory location {address} must be an int in range [0: 65535]"
+            )
+        dict.__setitem__(self, address, data)
+        # If the address is a peripheral then call peripheral handler
+        if self.peripherals and address in self.peripherals:
+            self.peripherals[address](data)
+
+
 class Emulator:
     def __init__(self, filename):
         self.memory, self.line_map, self.variables = self._load_d8_file(filename)
@@ -69,7 +105,7 @@ class Emulator:
 
     def _load_d8_file(self, filename):
         """Load the .d8 file in to memory."""
-        memory = {}
+        memory = Memory(periph_handlers)
         line_map = {}
         variables = {}
         with open(filename, "r") as f:
@@ -112,7 +148,7 @@ class Emulator:
             debug = line[3].strip()
             if debug.startswith("var:"):
                 # Handle variables
-                memory = {}
+                memory = Memory()
                 result = re.search(r"var\:(\w+)\[(\d+)\]", debug)
                 name = result.groups()[0]
                 length = int(result.groups()[1], 10)
