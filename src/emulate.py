@@ -1,6 +1,9 @@
 # D8 Emulator
 import os
+import queue
 import re
+import socket
+import threading
 from textwrap import wrap
 
 from d8 import instruction
@@ -16,45 +19,105 @@ instruction_map = {value: key for key, value in instruction.items()}
 periph_map = {"SPPS": 2, "TERM": 3, "KBD": 4}
 
 
-def term(transmit):
-    """Terminal (screen) peripheral handler."""
-    print(f"Tx: {transmit}")
+def terminal(screen_q, keyboard_q):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 6543))
+        s.listen()
+        conn, addr = s.accept()
+        with conn:
+            # print("Connection from:", addr)
+            conn.settimeout(0.1)
+            while True:
+                try:
+                    keystrokes = conn.recv(100)
+                    for key in keystrokes.decode():
+                        keyboard_q.put(key)
+                except socket.timeout:
+                    pass
+
+                try:
+                    screen_char = screen_q.get(block=False)
+                    if screen_char:
+                        conn.sendall(chr(screen_char).encode())
+                except queue.Empty:
+                    pass
 
 
-def keyboard(receive):
+class Screen:
+    """Screen peripheral handler."""
+
+    def __init__(self, screen_q):
+        self.screen_q = screen_q
+        self.value = 0
+
+    def read(self):
+        return self.value
+
+    def write(self, value):
+        self.value = value
+        self.screen_q.put(value)
+
+
+class Keyboard:
     """Keyboard peripheral handler."""
-    print(f"Rx: {receive}")
 
+    def __init__(self, keyboard_q):
+        self.keyboard_q = keyboard_q
+        self.key = 0
 
-periph_handlers = {periph_map["TERM"]: term, periph_map["KBD"]: keyboard}
+    def read(self):
+        self.key = self.keyboard_q.get()
+        if self.key is None:
+            self.key = 0  # None means queue is empty, so write 0 instead
+        return self.key
+
+    def write(self, value):
+        # Writes to keyboad are ignored
+        pass
 
 
 class Memory(dict):
     """Read and write to memory, calling out to memory mapped peripherals as needed."""
 
-    def __init__(self, peripherals=None):
-        """Initialise an empty memory."""
+    def __init__(self, screen_q, keyboard_q):
+        """Initialise an empty memory and the peripherals."""
         dict.__init__(self, {})
-        self.peripherals = peripherals
+        screen = Screen(screen_q)
+        keyboard = Keyboard(keyboard_q)
+        self._peripherals = {periph_map["TERM"]: screen, periph_map["KBD"]: keyboard}
 
     def __getitem__(self, address):
-        data = dict.__getitem__(self, address)
-        return data
+        if address in self._peripherals:
+            return self._peripherals[address].read()
+        else:
+            return dict.__getitem__(self, address)
 
     def __setitem__(self, address, data):
         if not isinstance(address, int) or address < 0 or address > 65535:
             raise KeyError(
-                f"Memory location {address} must be an int in range [0: 65535]"
+                f"Memory location {address} must be an int in range [0, 65535]"
             )
-        dict.__setitem__(self, address, data)
-        # If the address is a peripheral then call peripheral handler
-        if self.peripherals and address in self.peripherals:
-            self.peripherals[address](data)
+        if address in self._peripherals:
+            self._peripherals[address].write(data)
+        else:
+            dict.__setitem__(self, address, data)
 
 
 class Emulator:
     def __init__(self, filename):
-        self.memory, self.line_map, self.variables = self._load_d8_file(filename)
+        screen_q = queue.Queue()
+        keyboard_q = queue.Queue()
+        threads = []
+        t = threading.Thread(
+            name="terminal", target=terminal, args=(screen_q, keyboard_q)
+        )
+        t.start()
+        threads.append(t)
+
+        self.memory = Memory(screen_q, keyboard_q)
+        self.line_map = {}
+        self.variables = {}
+        self._load_d8_file(filename, self.memory, self.line_map, self.variables)
         self.reset()
         self.breakpoints = []
 
@@ -103,11 +166,8 @@ class Emulator:
             ]
             print(f'{name}[{v["length"]}]: {content}')
 
-    def _load_d8_file(self, filename):
+    def _load_d8_file(self, filename, memory, line_map, variables):
         """Load the .d8 file in to memory."""
-        memory = Memory(periph_handlers)
-        line_map = {}
-        variables = {}
         with open(filename, "r") as f:
             for line in f.readlines():
                 mem, line_number, variable = self._parseline(line)
@@ -117,7 +177,6 @@ class Emulator:
                     line_map.update(line_number)
                 if variable:
                     variables.update(variable)
-        return memory, line_map, variables
 
     def load_source(self, filename):
         """
@@ -148,7 +207,7 @@ class Emulator:
             debug = line[3].strip()
             if debug.startswith("var:"):
                 # Handle variables
-                memory = Memory()
+                memory = Memory(None, None)  # TODO fix this hack
                 result = re.search(r"var\:(\w+)\[(\d+)\]", debug)
                 name = result.groups()[0]
                 length = int(result.groups()[1], 10)
