@@ -18,29 +18,39 @@ instruction_map = {value: key for key, value in instruction.items()}
 # Memory locations of the peripherals
 periph_map = {"SPPS": 2, "TERM": 3, "KBD": 4}
 
+stop_threads = False
+
 
 def terminal(screen_q, keyboard_q):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 6543))
         s.listen()
-        conn, addr = s.accept()
-        with conn:
-            # print("Connection from:", addr)
-            conn.settimeout(0.1)
-            while True:
-                try:
-                    keystrokes = conn.recv(100)
-                    for key in keystrokes.decode():
-                        keyboard_q.put(key)
-                except socket.timeout:
-                    pass
+        s.settimeout(0.1)
+        while not stop_threads:
+            try:
+                conn, addr = s.accept()
+            except socket.timeout:
+                continue
+            with conn:
+                # print("Connection from:", addr)
+                conn.settimeout(0.1)
+                while not stop_threads:
+                    try:
+                        keystrokes = conn.recv(100)
+                        for key in keystrokes:  # TODO may need .decode() ?
+                            if isinstance(key, str):
+                                key = ord(key)
+                            keyboard_q.put(key)
+                    except socket.timeout:
+                        pass
 
-                try:
-                    screen_char = screen_q.get(block=False)
-                    if screen_char:
-                        conn.sendall(chr(screen_char).encode())
-                except queue.Empty:
-                    pass
+                    try:
+                        screen_char = screen_q.get(block=False)
+                        if screen_char:
+                            conn.sendall(chr(screen_char).encode())
+                    except queue.Empty:
+                        pass
+                conn.close()
 
 
 class Screen:
@@ -66,9 +76,10 @@ class Keyboard:
         self.key = 0
 
     def read(self):
-        self.key = self.keyboard_q.get()
-        if self.key is None:
-            self.key = 0  # None means queue is empty, so write 0 instead
+        try:
+            self.key = self.keyboard_q.get(block=False)
+        except queue.Empty:
+            self.key = 0
         return self.key
 
     def write(self, value):
@@ -107,12 +118,12 @@ class Emulator:
     def __init__(self, filename):
         screen_q = queue.Queue()
         keyboard_q = queue.Queue()
-        threads = []
+        self._threads = []
         t = threading.Thread(
             name="terminal", target=terminal, args=(screen_q, keyboard_q)
         )
         t.start()
-        threads.append(t)
+        self._threads.append(t)
 
         self.memory = Memory(screen_q, keyboard_q)
         self.line_map = {}
@@ -120,6 +131,12 @@ class Emulator:
         self._load_d8_file(filename, self.memory, self.line_map, self.variables)
         self.reset()
         self.breakpoints = []
+
+    def shutdown(self):
+        global stop_threads
+        stop_threads = True
+        for t in self._threads:
+            t.join()  # wait for termination
 
     def reset(self):
         self.pc = 0
@@ -135,7 +152,10 @@ class Emulator:
             self._execute(opcode, operands)
 
     def run(self):
-        """Run the CPU until we hit a breakpoint or Stop flag is true."""
+        """
+        Run the CPU until we hit a breakpoint or Stop flag is true.
+        Break out of the loop with CTRL+C in case it hangs
+        """
         self.step()  # First step to move away from any breakpoints
         while not self.status["stop"] and self.pc not in self.breakpoints:
             self.step()
