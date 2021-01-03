@@ -68,7 +68,7 @@ class SymbolTable:
         Ref https://lark-parser.readthedocs.io/en/latest/visitors.html#transformer
         """
 
-        from operator import add, mul, neg, sub
+        from operator import add, lshift, mul, neg, rshift, sub
         from operator import truediv as div
 
         def __init__(self, get_symbol):

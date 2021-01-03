@@ -75,6 +75,10 @@ class TestSymbolTable(unittest.TestCase):
         tree = p.children[0].children[0].children[0]
         self.assertEqual(symbols.resolve_expression(tree), 90)
 
+        p = grammar.parse(".define VALUE 1 + 1 << 2 + 1 \n")
+        tree = p.children[0].children[0].children[0].children[1]
+        self.assertEqual(symbols.resolve_expression(tree), 16)
+
 
 class TestMemoryMap(unittest.TestCase):
     def test_set_origin(self):
