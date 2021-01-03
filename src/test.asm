@@ -79,4 +79,4 @@ Start:
 
 .string     helloStr    "Hello WORLD"
 .byte       fib         LENGTH
-;;;;.array  vector   { 1, 2, "C", 0x0F }
+.array      vector      { 1, 2, "C", 0x0F }
