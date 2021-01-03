@@ -1,5 +1,28 @@
 # Journal / notes of what I have done
 
+## Sun, 3 Jan 2021
+Rewrote the Sieve of Eratosthenes program. Looks correct.
+
+Maybe a todo: It would be nice if the Zero flag was set/cleared based on what was on the data bus instead of only based on the output from the ALU. That way you could detect whether a variable was zero when it was loaded/stored/moved without having to do an explicit compare, for example:
+
+```
+    LD      A, someVariable
+    BEQ     SomePlace
+```
+
+Instead of what we need to do now:
+
+```
+    LD      A, someVariable
+    CLR     B
+    CMP     A, B
+    BEQ     SomePlace
+```
+
+
+## Sat, 26 Dec 2020
+Added keyboard and screen peripherals to the emulator. These can be accessed via a telnet client on localhost port 6543. The emulator runs a telnet server that reads from and writes to the correct memory location in the emulated RAM. Can send text to the client, and read keys from the client.
+
 ## Mon, 21 Dec
 Implemented bubble sort, works nicely enough. No attempt to optimise.
 
@@ -52,7 +75,7 @@ I've simplified the mnemonic, and updated the [CPU manual](https://docs.google.c
 - `INC`, `DEC`, `NOT`, `RORC` and `ROLC` support single register, where source and destination is the same register
 - Simplified the load and store mnemonics to just `LD` and `ST`, using an X or SP to specify the addressing mode
 
-## Sat, 28 Dec: Next steps
+## Sat, 28 Dec 2019: Next steps
 
 ### Terminal emulator
 Now that the basics of screen output is working, I'd like to implement a basic terminal. Digital supports a screen output and keyboard input, which I've mapped to two memory locations. I need to figure out how to get a screen+keyboard working on my emulator. I initially thought of pressing a key combo like CTRL+^ to switch screens like in Vim, or maybe t for terminals, but I feel like I might be on the path to implementing a terminal... so why not have my emulator expose a local telnet port that terminal emulators can connect to? The TCP port can map incoming bytes to the keyboard buffer, and send bytes written to the screen memory location back out on the TCP port to be displayed on the terminal emulator program.
