@@ -6,19 +6,19 @@ I've always wanted to build a computer from the ground up, even as a child/young
 ## Progress
 Follow my [build journal](/docs/journal.md)
 
-[x] Define what I'd like the CPU to do, and what technology I'd like to use
-[x] Design the CPU architecture including data/address busses, registers, addressing modes
-[ ] Implement interrupt handling
-[x] Define the assembly language: [grammar.lark](https://github.com/dalehumby/d8/blob/master/src/grammar.lark)
-[x] Write a 2-pass assembler: [asm.py](https://github.com/dalehumby/d8/blob/master/src/asm.py)
-[x] Write an emulator ([emulate.py](https://github.com/dalehumby/d8/blob/master/src/emulate.py)) and GUI front-end ([gui.py](https://github.com/dalehumby/d8/blob/master/src/gui.py)) to step through the and visualise the state of the CPU
-[x] Build the CPU in a digital circuit simulator: [Digital](https://github.com/dalehumby/d8/tree/master/Digital)
-[x] Write small [example programs](https://github.com/dalehumby/d8/tree/master/examples) for testing
-[ ] To test that the CPU and tool chain is any good, implement a basic FORTH or Lisp interpreter
-[ ] Get peripherals working, such as screen, keyboard and timers in emulator and circuit simulator
-[ ] Swap out the high-level digital components for real IC's such as __ series. Source all parts
-[ ] Lay out the PCB and get printed
-[ ] Populate PCB, get the CPU running
+- [x] Define what I'd like the CPU to do, and what technology I'd like to use
+- [x] Design the CPU architecture including data/address busses, registers, addressing modes
+- [ ] Implement interrupt handling
+- [x] Define the assembly language: [grammar.lark](https://github.com/dalehumby/d8/blob/master/src/grammar.lark)
+- [x] Write a 2-pass assembler: [asm.py](https://github.com/dalehumby/d8/blob/master/src/asm.py)
+- [x] Write an emulator ([emulate.py](https://github.com/dalehumby/d8/blob/master/src/emulate.py)) and GUI front-end ([gui.py](https://github.com/dalehumby/d8/blob/master/src/gui.py)) to step through the and visualise the state of the CPU
+- [x] Build the CPU in a digital circuit simulator: [Digital](https://github.com/dalehumby/d8/tree/master/Digital)
+- [x] Write small [example programs](https://github.com/dalehumby/d8/tree/master/examples) for testing
+- [ ] To test that the CPU and tool chain is any good, implement a basic FORTH or Lisp interpreter
+- [ ] Get peripherals working, such as screen, keyboard and timers in emulator and circuit simulator
+- [ ] Swap out the high-level digital components for real IC's such as __ series. Source all parts
+- [ ] Lay out the PCB and get printed
+- [ ] Populate PCB, get the CPU running
 
 ## Architecture
 For simplicity I have chosen to build an 8-bit [von Neumann](https://en.wikipedia.org/wiki/Von_Neumann_architecture), [RISC](https://en.wikipedia.org/wiki/Reduced_instruction_set_computer) computer. 
