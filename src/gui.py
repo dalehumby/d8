@@ -36,7 +36,8 @@ def handle_command(cmd, cpu, source_pad, source_map):
     operands = cmd[1:]
     cmd = cmd[0]
     if cmd == "q":
-        quit()
+        cpu.shutdown()
+        exit()
     elif cmd == "reset":
         unhighlight_source(source_pad, cpu, source_map)
         cpu.reset()
@@ -126,7 +127,7 @@ def draw_variables(win, cpu):
             cpu.memory[adr] for adr in range(v["address"], v["address"] + v["length"])
         ]
         win.addstr(y, 0, f'{name}[{v["address"]:04X}]: {values}')
-        y += 1  # todo: can I do this in the iterator?
+        y += 3  # TODO: can I do this in the iterator?
     if not cpu.variables:
         win.addstr(y, 0, "--")
     win.noutrefresh()
@@ -195,7 +196,7 @@ def run_emulator(stdscr, filename):
     )
 
     # Variables window
-    var_win_height = 2 + len(cpu.variables)
+    var_win_height = 2 + len(cpu.variables) * 3  # TODO remove the *2
     var_win = curses.newwin(
         var_win_height, right_win_width, reg_win_height + 2, scr_width - right_win_width
     )
