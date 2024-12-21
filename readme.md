@@ -10,6 +10,7 @@ Follow my [build journal](/docs/journal.md)
 - [x] Design the CPU architecture including data/address busses, registers, addressing modes
 - [ ] Implement interrupt handling
 - [x] Define the assembly language: [grammar.lark](https://github.com/dalehumby/d8/blob/master/src/grammar.lark)
+- [x] [Vim D8 assembler syntax highlighting](https://github.com/dalehumby/vim-d8)
 - [x] Write a 2-pass assembler: [asm.py](https://github.com/dalehumby/d8/blob/master/src/asm.py)
 - [x] Write an emulator ([emulate.py](https://github.com/dalehumby/d8/blob/master/src/emulate.py)) and GUI front-end ([gui.py](https://github.com/dalehumby/d8/blob/master/src/gui.py)) to step through the and visualise the state of the CPU
 - [x] Build the CPU in a digital circuit simulator: [Digital](https://github.com/dalehumby/d8/tree/master/Digital)
